@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>リーマン予想から考える「AIが人間を超える」とは</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@600;700&display=swap">
+<style>
+* { margin: 0 }
+html { background: #E3DDCF }
+:root { --z: 0.5 }
+body { font-family: 'Noto Sans JP', Arial, sans-serif; color: #17212F; }
+
+section { background: #F7F4EE; color: #17212F; padding: 128px 128px 160px; display: flex; flex-direction: column; }
+
+h1 { font-family: 'Noto Serif JP', Georgia, serif; font-size: 96px; font-weight: 700; line-height: 1.25; }
+h2 { font-family: 'Noto Serif JP', Georgia, serif; font-size: 56px; font-weight: 700; line-height: 1.25; margin-top: 20px; }
+h3 { font-family: 'Noto Serif JP', Georgia, serif; font-size: 34px; font-weight: 700; line-height: 1.35; }
+
+/* labels */
+.tag { font-size: 24px; font-weight: 700; line-height: 1.5; letter-spacing: 2px; padding: 6px 20px; border-radius: 8px; align-self: flex-start; }
+.tag-fact { background: #17212F; color: #F7F4EE; }
+.tag-obs { background: #1A6480; color: #F7F4EE; }
+.tag-hyp { background: #E9A23B; color: #17212F; }
+.tag-q { background: #F7F4EE; color: #17212F; border: 2px solid #17212F; padding: 4px 18px; }
+.tag-plain { background: #ECE7DB; color: #17212F; }
+.tagw { width: 168px; padding: 6px 0; text-align: center; flex-shrink: 0; }
+
+/* text */
+.lead { font-size: 34px; line-height: 1.5; color: #3C4654; margin-top: 16px; }
+.t { font-size: 28px; line-height: 1.5; color: #3C4654; margin-top: 8px; }
+.s { font-size: 24px; line-height: 1.5; color: #4A5563; margin-top: 12px; }
+.lab { font-size: 24px; font-weight: 700; line-height: 1.5; color: #1A6480; margin-top: 16px; }
+.list { font-size: 28px; line-height: 1.5; color: #3C4654; padding-left: 36px; margin-top: 4px; }
+.list li { margin-top: 12px; }
+
+/* layout */
+.cols { display: flex; gap: 40px; margin-top: 40px; }
+.c1 { flex: 1; }
+.c2 { flex: 2; }
+.c3 { flex: 3; }
+.g2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin-top: 40px; }
+.g3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; margin-top: 40px; }
+.g4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-top: 40px; }
+.stack { display: flex; flex-direction: column; gap: 16px; }
+.blk { margin-top: 40px; }
+
+.card { background: #ECE7DB; border-radius: 16px; padding: 28px 32px; display: flex; flex-direction: column; }
+.card-tight { padding: 24px 32px; }
+.h3gap { margin-top: 20px; }
+
+/* stat tiles */
+.stat { background: #ECE7DB; border-radius: 16px; padding: 20px 32px; display: flex; flex-direction: column; }
+.num { font-family: 'Noto Serif JP', Georgia, serif; font-size: 56px; font-weight: 700; line-height: 1.1; color: #17212F; }
+.fig { font-family: 'Noto Serif JP', Georgia, serif; font-size: 34px; font-weight: 700; line-height: 1.35; color: #17212F; }
+.cap { font-size: 24px; line-height: 1.5; color: #4A5563; margin-top: 6px; }
+.cap0 { margin-top: 0; }
+.stat-h { flex-direction: row; align-items: center; gap: 28px; }
+.cols-tight { margin-top: 24px; }
+
+/* strip: a note with a coloured bar */
+.strip { display: flex; gap: 24px; margin-top: 28px; }
+.strip-next { margin-top: 16px; }
+.bar { width: 6px; background: #E9A23B; flex-shrink: 0; }
+.bar-blue { background: #1A6480; }
+.strip-t { font-size: 28px; line-height: 1.5; color: #17212F; }
+
+/* tables */
+.tb { width: 100%; font-size: 24px; line-height: 1.5; color: #17212F; }
+.tb28 { font-size: 28px; }
+.hd { background: #17212F; }
+.hd th { color: #F7F4EE; text-align: left; }
+.row-now { background: #ECE7DB; }
+
+/* steps (observation slide) */
+.step { display: flex; gap: 28px; align-items: center; background: #ECE7DB; border-radius: 16px; padding: 24px 32px; }
+.stepn { font-family: 'Noto Serif JP', Georgia, serif; font-size: 56px; font-weight: 700; line-height: 1; color: #1A6480; width: 56px; flex-shrink: 0; }
+.step-now { background: #17212F; }
+.step-now h3 { color: #F7F4EE; }
+.step-now .t { color: #D5DCE5; }
+.step-now .stepn { color: #E9A23B; }
+
+/* rows with a label in front (summary slide) */
+.lrow { display: flex; gap: 20px; margin-top: 20px; }
+.lrow-t { font-size: 28px; line-height: 1.5; color: #3C4654; }
+
+/* footer band */
+.foot { position: absolute; left: 128px; bottom: 64px; width: 1664px; font-size: 24px; line-height: 1.4; color: #5A6472; }
+
+/* cover */
+.cover { background: #17212F; color: #F7F4EE; justify-content: center; }
+.eyebrow { font-size: 24px; font-weight: 700; letter-spacing: 4px; color: #E9A23B; }
+.cover h1 { margin-top: 32px; }
+.sub { font-size: 34px; line-height: 1.5; color: #C9D3DF; margin-top: 40px; }
+.cover .foot { color: #AEB9C6; }
+
+/* question slides */
+.q { background: #17212F; color: #F7F4EE; padding: 128px; }
+.q .tag-q { background: #17212F; color: #F7F4EE; border: 2px solid #F7F4EE; }
+.q h1 { margin-top: 40px; }
+.ask { font-size: 34px; line-height: 1.5; color: #C9D3DF; margin-top: 48px; }
+.nudges { display: flex; gap: 32px; margin-top: 40px; }
+.nudge { flex: 1; font-size: 28px; line-height: 1.5; color: #F7F4EE; border: 2px solid #5B6B80; border-radius: 16px; padding: 24px 32px; }
+
+/* dialogue slides */
+.gt { margin-top: 24px; }
+.talk { display: flex; flex-direction: column; gap: 16px; margin-top: 36px; }
+.ln { display: flex; gap: 20px; align-items: flex-start; }
+.ln-ai { justify-content: flex-end; }
+.who { font-size: 24px; font-weight: 700; line-height: 1.5; width: 72px; flex-shrink: 0; padding-top: 22px; }
+.who-me { color: #17212F; }
+.who-ai { color: #1A6480; text-align: right; }
+.bub { border-radius: 20px; padding: 20px 36px; max-width: 1180px; }
+.bub-me { background: #17212F; }
+.bub-ai { background: #ECE7DB; }
+.say-me { font-family: 'Noto Serif JP', Georgia, serif; font-size: 34px; font-weight: 700; line-height: 1.35; color: #F7F4EE; }
+.say-big { font-family: 'Noto Serif JP', Georgia, serif; font-size: 56px; font-weight: 700; line-height: 1.25; color: #F7F4EE; }
+.say-ai { font-size: 28px; line-height: 1.5; color: #17212F; }
+.card-now { background: #17212F; }
+.card-now h3 { color: #F7F4EE; }
+.card-now .t { color: #D5DCE5; }
+
+/* QR slide */
+.qrbox { background: #FFFFFF; border-radius: 16px; padding: 32px; flex-shrink: 0; }
+.url { font-size: 34px; font-weight: 700; line-height: 1.5; color: #17212F; margin-top: 8px; }
+.url a { color: #1A6480; }
+
+.stat-h .num { flex-shrink: 0; white-space: nowrap; }
+
+/* page shell */
+body { font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', Meiryo, sans-serif; padding: 16px 8px 48px }
+h1, h2, h3, .num, .fig, .stepn, .say-me, .say-big { font-family: 'Noto Serif JP', 'Hiragino Mincho ProN', 'Yu Mincho', serif }
+.pg-head { max-width: 1280px; margin: 0 auto 16px; font-size: 15px; line-height: 1.6; color: #3C4654 }
+.pg-head a { color: #1A6480 }
+.pg-title { font-size: 18px; font-weight: 700; color: #17212F }
+.pg-rot { display: none; font-weight: 700; color: #1A6480 }
+@media (orientation: portrait) and (max-width: 720px) { .pg-rot { display: block } }
+.sw { width: calc(1920px * var(--z)); margin: 0 auto 16px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 6px rgba(23,33,47,.18) }
+.sw > section { width: 1920px; height: 1080px; box-sizing: border-box; position: relative; overflow: hidden; zoom: var(--z) }
+table { width: 100%; border-collapse: separate; border-spacing: 0; border: solid #0003; border-width: 2px 0 0 2px }
+th, td { padding: .35em .6em; text-align: left; border: solid #0003; border-width: 0 2px 2px 0 }
+.pg-foot { max-width: 1280px; margin: 24px auto 0; font-size: 13px; line-height: 1.6; color: #5A6472 }
+</style>
+</head>
+<body>
+<div class="pg-head">
+<p class="pg-title">リーマン予想から考える「AIが人間を超える」とは</p>
+<p>Akami Studio 投資講座の資料です。スライドは上から順に、縦に並んでいます。<a href="./">資料の一覧へ</a></p>
+<p class="pg-rot">スマホは、横向きにすると読みやすくなります。</p>
+</div>
+<main>
+<div class="sw"><section id="cover" class="cover" data-transition="fade">
+<p class="eyebrow">Akami Studio　投資講座</p>
+<h1>リーマン予想から考える<br>「AIが人間を超える」とは</h1>
+<p class="sub">AIとの対話をもとに構成。リーマン予想から、「何を手元に残すか」まで</p>
+<p class="foot">2026年11月24日時点の情報にもとづく</p>
+</section></div>
+<div class="sw"><section id="labels" data-transition="fade">
+<p class="tag tag-plain">進め方</p>
+<h2>今日は、私とAIの対話をたどります</h2>
+<p class="lead">リーマン予想のニュースから始まり、「何を手元に残すか」に行き着くまでの記録です。</p>
+<div class="g4">
+<div class="card">
+<p class="tag tag-q">問い</p>
+<p class="t">まず、皆さんに考えてもらいます</p>
+</div>
+<div class="card">
+<p class="tag tag-fact">私の答え</p>
+<p class="t">その場で私が言った言葉です。長いものは短くしています</p>
+</div>
+<div class="card">
+<p class="tag tag-plain">AIの返し</p>
+<p class="t">AIの反論や問いです。短くまとめています</p>
+</div>
+<div class="card">
+<p class="tag tag-hyp">気づき</p>
+<p class="t">そこで分かったこと。次の問いにつながります</p>
+</div>
+</div>
+<div class="strip"><div class="bar"></div><p class="strip-t">途中で、私の考えは何度か変わります。迷ったところも、そのまま載せています。やり取りの順番は、実際のままです</p></div>
+<div class="strip strip-next"><div class="bar bar-blue"></div><p class="strip-t">対話の相手はClaude。リーマン予想の証明に使われたAIと、同じ系統です（同じ版かは未確認）。その点は割り引いて聞いてください</p></div>
+</section></div>
+<div class="sw"><section id="rh-news" data-transition="fade">
+<p class="tag tag-fact">事実</p>
+<h2>リーマン予想の証明が、機械による検証を通過した</h2>
+<div class="g2">
+<div class="stat stat-h">
+<p class="num">167年</p>
+<p class="cap cap0">誰にも解けなかった期間（1859年に提起）</p>
+</div>
+<div class="stat stat-h">
+<p class="num">約6週間</p>
+<p class="cap cap0">本人の説明による、着手から公開まで。8月の成果など、それ以前の蓄積は含まない</p>
+</div>
+</div>
+<div class="cols cols-tight">
+<div class="card c1">
+<h3>起きたこと</h3>
+<ul class="list">
+<li><b>11月20日</b>：AI企業Anthropicの数学者が、AI「Claude」と一緒に見つけた証明を公開</li>
+<li><b>11月21日</b>：機械検証（コンピューターが証明を1行ずつ検査すること）を通過</li>
+<li>証明は約1,700万行のプログラム。人が読む論文は、まだない</li>
+</ul>
+</div>
+<div class="card c1">
+<h3>まだ確定していないこと</h3>
+<ul class="list">
+<li>なぜ成り立つのかを説明できる人が、まだいない</li>
+<li>一部の検査は、継続中と報じられた（11月22日時点）</li>
+<li>公式には「未解決」のまま。懸賞金100万ドルの認定には、論文の公刊と2年の経過が要る</li>
+<li>同じ日に、AIを使わない別の証明草稿も公開。こちらは、問題点の指摘が報じられている</li>
+</ul>
+</div>
+</div>
+<p class="foot">出典：検証団体（Lean・Mathlib）の共同声明、The Next Web、GIGAZINE、Quanta Magazine、XenoSpectrum ほか。11月24日確認</p>
+</section></div>
+<div class="sw"><section id="rh-what" data-transition="fade">
+<p class="tag tag-fact">事実</p>
+<h2>リーマン予想は、素数の現れ方についての予想</h2>
+<div class="g3">
+<div class="card">
+<h3>1　素数は「数の原子」</h3>
+<p class="t">素数とは、1と自分自身でしか割り切れない数。2、3、5、7、11…と続く</p>
+<p class="t">2以上の整数はすべて、素数の掛け算でできている（例：12＝2×2×3）</p>
+</div>
+<div class="card">
+<h3>2　現れ方は不規則</h3>
+<p class="t">100までに25個<br>1,000までに168個<br>100万までに78,498個</p>
+<p class="t">だんだんまばらになるが、次がいつ来るかは読めない</p>
+</div>
+<div class="card">
+<h3>3　それでも法則がある</h3>
+<p class="t">素数の個数を見積もる公式がある。リーマン予想は「その見積もりのずれは、これ以上ないほど小さい」と言い切る予想</p>
+</div>
+</div>
+<div class="strip">
+<div class="bar"></div>
+<p class="strip-t">たとえるなら、サイコロ。1回の目は読めないが、何万回も振ると、平均からのずれは決まった範囲に収まる。素数にも、それに近い規則正しさがある、という予想（厳密な対応ではなく、たとえです）</p>
+</div>
+<div class="strip strip-next">
+<div class="bar bar-blue"></div>
+<p class="strip-t">なぜ大事か：「この予想が正しければ」という条件つきで証明された定理が、数百ある。数学の広い範囲が、この予想の上に建っている</p>
+</div>
+<p class="foot">出典：Wikipedia「Riemann hypothesis」、Al Jazeera（11月21日）ほか。素数の個数は広く知られた値。11月24日確認</p>
+</section></div>
+<div class="sw"><section id="rh-impact" data-transition="fade">
+<p class="tag tag-fact">事実</p>
+<h2>数学にもAIにも、これだけのインパクトがあった</h2>
+<div class="cols">
+<div class="card c1">
+<h3>数学界</h3>
+<ul class="list">
+<li><b>土台が固まる</b>：条件つきだった数百の定理が、条件なしで使えるようになる見込み</li>
+<li><b>証明の形が変わる</b>：人が読む論文より先に、機械が検査するプログラムが出た</li>
+<li><b>専門家の見通しを超えた</b>：機械検証を広めてきた数学者も、あと数年はかかると見ていた</li>
+</ul>
+</div>
+<div class="card c1">
+<h3>AI</h3>
+<ul class="list">
+<li><b>中核のアイデアを出した</b>：終盤はAIが大きく先行したと、数学者本人が説明している</li>
+<li><b>前ぶれがあった</b>：8月にも、関連する数十年来の記録を、Claudeが大きく更新していた</li>
+<li><b>確かめる側にもAI</b>：独立した検査の実行にも、AIが使われた</li>
+</ul>
+</div>
+</div>
+<div class="strip">
+<div class="bar bar-blue"></div>
+<p class="strip-t">フィールズ賞（数学で最も権威ある賞の1つ）を受けたタオ氏は、理解には時間がかかると評価している</p>
+</div>
+<div class="strip strip-next">
+<div class="bar"></div>
+<p class="strip-t">注意：AIが単独で解いたわけではない。問題を選び、方向を決めたのは人間。暗号がすぐ破られるわけでもない</p>
+</div>
+<p class="foot">出典：タオ氏のブログ（11月20日）、Anthropicの発表（8月10日）、The Next Web、Al Jazeera ほか。11月24日確認</p>
+</section></div>
+<div class="sw"><section id="q-changed" class="q" data-transition="fade">
+<p class="tag tag-q">問い</p>
+<h1>「歴史が変わった」。<br>何が変わったのでしょうか</h1>
+<p class="ask">このニュースを受けて、多くの人がそう言いました。30秒で、自分の言葉で書いてみてください。</p>
+<div class="nudges">
+<p class="nudge">数学の話ですか</p>
+<p class="nudge">AIの話ですか</p>
+<p class="nudge">私たちの仕事や生活の話ですか</p>
+</div>
+</section></div>
+<div class="sw"><section id="d1" data-transition="fade">
+<p class="tag tag-obs">対話</p>
+<h2>最初の答えは、「人間の手の届かない所まで来た」</h2>
+<div class="talk">
+<div class="ln"><p class="who who-me">私</p><div class="bub bub-me"><p class="say-me">数学界というより、AIの能力が、人間の手の届かない所まで到達した</p></div></div>
+<div class="ln ln-ai"><div class="bub bub-ai"><p class="say-ai">事実として言えるのは、「167年届かなかった所に、AIと人間の組で届いた」までです。「人間の手の届かない所」は、その先の解釈です。この差は大事ですか</p></div><p class="who who-ai">AI</p></div>
+<div class="ln"><p class="who who-me">私</p><div class="bub bub-me"><p class="say-me">あまり大事ではないかな。いずれ人間の手が要らなくなることは、想像できるから</p></div></div>
+</div>
+<div class="strip"><div class="bar"></div><p class="strip-t">次の問い：その「いずれ」とは、いつなのか</p></div>
+</section></div>
+<div class="sw"><section id="d2" data-transition="fade">
+<p class="tag tag-obs">対話</p>
+<h2>「1〜2年」。その根拠を問われた</h2>
+<div class="talk">
+<div class="ln ln-ai"><div class="bub bub-ai"><p class="say-ai">その「いずれ」は、どのくらいの時間幅ですか</p></div><p class="who who-ai">AI</p></div>
+<div class="ln"><p class="who who-me">私</p><div class="bub bub-me"><p class="say-me">1〜2年かな。もっと速いかも</p></div></div>
+<div class="ln ln-ai"><div class="bub bub-ai"><p class="say-ai">数学のように、正否を機械が判定できる領域なら、私も否定できません。ただ、それ以外の領域では、AIの賢さより、確かめる手段のほうが全体の速さを決めます。この先半年で何が起きたら、「1〜2年で合っている」と考えますか</p></div><p class="who who-ai">AI</p></div>
+<div class="ln"><p class="who who-me">私</p><div class="bub bub-me"><p class="say-me">人間が指示しないで、AIがその人のやりたい事を考え、指示なしで動くイメージ</p></div></div>
+</div>
+<div class="strip"><div class="bar"></div><p class="strip-t">次の問い：AIに何ができるかより、人が確認せずに受け取るようになったか。任せきった仕事は、あるのか</p></div>
+</section></div>
+<div class="sw"><section id="q-check" class="q" data-transition="fade">
+<p class="tag tag-q">問い</p>
+<h1>確認なしでAIに任せている<br>仕事はありますか</h1>
+<p class="ask">「ほぼ任せている」ではなく、結果を見ずに使っているものを挙げてください。</p>
+<div class="nudges">
+<p class="nudge">誤字や表記のチェックは、どうですか</p>
+<p class="nudge">翻訳、要約、計算は、どうですか</p>
+<p class="nudge">1年前と比べて、確認の回数と中身は変わりましたか</p>
+</div>
+</section></div>
+<div class="sw"><section id="d3" data-transition="fade">
+<p class="tag tag-obs">対話</p>
+<h2>任せきった仕事は、まだ1つもなかった</h2>
+<div class="talk">
+<div class="ln"><p class="who who-me">私</p><div class="bub bub-me"><p class="say-me">まだない。ただ、以前と比べて、確認する数と質が、明らかに変わってきている</p></div></div>
+<div class="ln ln-ai"><div class="bub bub-ai"><p class="say-ai">確認が減った理由は、2通りあります。AIの精度が上がったからか、慣れたからか。本人には区別しにくいので、聞きます。何を見なくなって、代わりに何を見るようになりましたか</p></div><p class="who who-ai">AI</p></div>
+</div>
+<div class="g3 gt">
+<div class="card card-tight">
+<h3>1　表記</h3>
+<p class="t">誤字や脱字。ほとんど見なくなった</p>
+</div>
+<div class="card card-tight">
+<h3>2　伝達</h3>
+<p class="t">指示が伝わらない。これも、なくなってきた</p>
+</div>
+<div class="card card-tight card-now">
+<h3>3　中身</h3>
+<p class="t">一見正しいが、意図とは違う。今はここを見ている</p>
+</div>
+</div>
+<div class="strip"><div class="bar"></div><p class="strip-t">次の問い：その「意図とのずれ」は、AIの読み違いか。それとも、見て初めて分かったのか</p></div>
+</section></div>
+<div class="sw"><section id="d4" data-transition="fade">
+<p class="tag tag-hyp">転換点</p>
+<h2>ずれは、AIの読み違いではなかった</h2>
+<div class="talk">
+<div class="ln ln-ai"><div class="bub bub-ai"><p class="say-ai">その「意図とのずれ」は、どちらですか。事前に言葉にできていた意図を、AIが外したのか。それとも、成果物を見て初めて「違う」と分かったのか</p></div><p class="who who-ai">AI</p></div>
+<div class="ln"><p class="who who-me">私</p><div class="bub bub-me"><p class="say-big">見て初めて分かった</p></div></div>
+<div class="ln ln-ai"><div class="bub bub-ai"><p class="say-ai">そうだとすると、ご自身の観察は、冒頭の見立てと少しずれます。確認は検品ではなく、意図を作る工程です。この工程は、AIの精度が上がっても消えません。ただし、AIがあなたの反応を予測できるようになれば別です。それが1〜2年で起きるかは、私には分かりません</p></div><p class="who who-ai">AI</p></div>
+</div>
+<div class="strip"><div class="bar bar-blue"></div><p class="strip-t">私はこの指摘に、その場では答えなかった。代わりに、「人の手が要らなくなる」の定義を、先へ引き上げた</p></div>
+<div class="strip strip-next"><div class="bar"></div><p class="strip-t">次の問い：では、「人の手が要らなくなった」とは、どういう状態のことなのか</p></div>
+</section></div>
+<div class="sw"><section id="q-enter" class="q" data-transition="fade">
+<p class="tag tag-q">問い</p>
+<h1>AIが3案を出す。<br>あなたは、1つ選ぶだけ</h1>
+<p class="ask">これは「人の手が要らなくなった」に入りますか。手を挙げてください。</p>
+<div class="nudges">
+<p class="nudge">入る。選ぶだけなら、手は要らないのと同じ</p>
+<p class="nudge">入らない。選んでいるのは、人だから</p>
+<p class="nudge">どちらとも言えない</p>
+</div>
+</section></div>
+<div class="sw"><section id="d5" data-transition="fade">
+<p class="tag tag-obs">対話</p>
+<h2>行き着いたのは、「信じるしかない」</h2>
+<div class="talk">
+<div class="ln"><p class="who who-me">私</p><div class="bub bub-me"><p class="say-me">入らない。AIが案を出して、勝手に選ぶ。その案が、私の想像できないような良いものなら、なおさら</p></div></div>
+<div class="ln ln-ai"><div class="bub bub-ai"><p class="say-ai">それが良かったと、後から何で分かりますか</p></div><p class="who who-ai">AI</p></div>
+<div class="ln"><p class="who who-me">私</p><div class="bub bub-me"><p class="say-me">そこまでいくと、私にはわからないね。投資のように結果が出るものでも、たまたまなのかは、続けないとわからない。もはや、信じるしかないね</p></div></div>
+</div>
+<div class="strip"><div class="bar"></div><p class="strip-t">次の問い：本当に、信じるか信じないかの二択なのか</p></div>
+</section></div>
+<div class="sw"><section id="q-trust" class="q" data-transition="fade">
+<p class="tag tag-q">問い</p>
+<h1>実力がまだ分からない運用者に、<br>投資資金の何％を預けますか</h1>
+<p class="ask">実績はまだなく、手法は説明されても理解できません。最初の割合と、変える条件を書いてください。</p>
+<div class="nudges">
+<p class="nudge">最初は、投資資金の何％を預けますか</p>
+<p class="nudge">何を見たら、その比率を増やしますか</p>
+<p class="nudge">何が起きたら、預けた資金を引き上げますか</p>
+</div>
+</section></div>
+<div class="sw"><section id="d6" data-transition="fade">
+<p class="tag tag-obs">対話</p>
+<h2>「どれだけ信じるか」。投資の感覚で、腑に落ちた</h2>
+<div class="talk">
+<div class="ln ln-ai"><div class="bub bub-ai"><p class="say-ai">二択ではありません。どれだけ信じるかは、選べます。資金を預けるときと同じです</p></div><p class="who who-ai">AI</p></div>
+</div>
+<div class="g4 gt">
+<div class="card card-tight">
+<h3>小さな割合から</h3>
+<p class="t">外れても致命傷にならない範囲で</p>
+</div>
+<div class="card card-tight">
+<h3>やり直せるものから</h3>
+<p class="t">取り返しのつかない判断は、手元に</p>
+</div>
+<div class="card card-tight">
+<h3>別の目で確かめる</h3>
+<p class="t">作り手ではなく、検査の仕組みを信じる</p>
+</div>
+<div class="card card-tight">
+<h3>実績に応じて増やす</h3>
+<p class="t">当たった分だけ広げ、外れたら戻す</p>
+</div>
+</div>
+<div class="talk">
+<div class="ln"><p class="who who-me">私</p><div class="bub bub-me"><p class="say-me">どれだけ信じるかね。確かに、初めは実績に裏付けがないから、預ける資金は少しだね。それが徐々に大きくなっていく。わかりやすいね</p></div></div>
+</div>
+<div class="strip"><div class="bar bar-blue"></div><p class="strip-t">AIの返し：ただし、実績が積み上がった頃が一番危ない。まれな大失敗は、起きるまで実績に現れない</p></div>
+<div class="strip strip-next"><div class="bar"></div><p class="strip-t">次の問い：そもそも私は、「超える」という言葉で、何を言っていたのか</p></div>
+</section></div>
+<div class="sw"><section id="d7" data-transition="fade">
+<p class="tag tag-hyp">気づき</p>
+<h2>「超える」を、言語化できていなかった</h2>
+<div class="talk">
+<div class="ln"><p class="who who-me">私</p><div class="bub bub-me"><p class="say-me">リーマン予想から超知能の行く先を考えてきたが、結局、「AIが人間を超える」ことを言語化できていなかった事に、気づかされたよ</p></div></div>
+<div class="ln ln-ai"><div class="bub bub-ai"><p class="say-ai">今夜のやり取りで、「超える」は少なくとも3つに分かれました。世間は主に1を見て「超えた」と言います。あなたの言う「人の手が要らなくなる」は、3まで含んだ話です</p></div><p class="who who-ai">AI</p></div>
+</div>
+<div class="g3 gt">
+<div class="card card-tight">
+<h3>1　できる</h3>
+<p class="t">人間にできなかったことを、AIがやる</p>
+<p class="s">リーマン予想：機械検証を通過</p>
+</div>
+<div class="card card-tight">
+<h3>2　確かめられる</h3>
+<p class="t">その成果が良いと、判定できる</p>
+<p class="s">リーマン予想：人間の理解はこれから</p>
+</div>
+<div class="card card-tight">
+<h3>3　任せられる</h3>
+<p class="t">人が、確認を手放す。決めるのは人間の側</p>
+<p class="s">リーマン予想：数学者が読み解き中</p>
+</div>
+</div>
+<div class="strip"><div class="bar"></div><p class="strip-t">次の問い：では、私はAIに何を望んでいるのか。代理人か、それとも助言者か</p></div>
+</section></div>
+<div class="sw"><section id="q-refuse" class="q" data-transition="fade">
+<p class="tag tag-q">問い</p>
+<h1>理解できない案を断る権利を、<br>手元に残しますか</h1>
+<p class="ask">忠実な代理人か、自分より優れた助言者か。私はAIに後者を望みました。すると、出てくる案の良さを、自分では判定できなくなります。</p>
+<div class="nudges">
+<p class="nudge">残す。理解できないものは採用しない</p>
+<p class="nudge">残さない。優れた案なら任せる</p>
+<p class="nudge">場合による。では、何によりますか</p>
+</div>
+</section></div>
+<div class="sw"><section id="d8" data-transition="fade">
+<p class="tag tag-obs">対話</p>
+<h2>断る権利すら、放棄しそうだった</h2>
+<div class="talk">
+<div class="ln"><p class="who who-me">私</p><div class="bub bub-me"><p class="say-me">難しい。これまで話していると、理解できない案を断る権利すら、放棄しそうだよ。ただ、これはかなり怖いね</p></div></div>
+<div class="ln"><p class="who who-me">私</p><div class="bub bub-me"><p class="say-me">そこを放棄したら、もう人間は終わり。もしかしたら、始まりかも？</p></div></div>
+<div class="ln ln-ai"><div class="bub bub-ai"><p class="say-ai">その怖さは、正しい警報だと思います。断る権利は、ある日手放すのではありません。使わない日が続いて、気づいたら使えなくなっています</p></div><p class="who who-ai">AI</p></div>
+<div class="ln ln-ai"><div class="bub bub-ai"><p class="say-ai">終わりか始まりかを分けるのは、取り消せるかどうかです。任せてみて、おかしければ引き上げられるなら、それは委任です。守るべきなのは、引き上げられる状態のほうです</p></div><p class="who who-ai">AI</p></div>
+</div>
+<div class="strip"><div class="bar"></div><p class="strip-t">次の問い：では、何を手元に残せば、引き上げられる状態を保てるのか</p></div>
+</section></div>
+<div class="sw"><section id="end" data-transition="fade">
+<p class="tag tag-hyp">行き着いた先</p>
+<h2>何を、手元に残すか</h2>
+<p class="lead">対話の最後に、AIが挙げた3つです。私の答えは、まだ出ていません。</p>
+<div class="g3">
+<div class="card card-tight">
+<h3>やり直せない判断</h3>
+<p class="t">取り返しのつかないことは、最後まで自分で決める</p>
+</div>
+<div class="card card-tight">
+<h3>別の目で確かめる仕組み</h3>
+<p class="t">作り手を信じるのではなく、検査する手段を持っておく</p>
+</div>
+<div class="card card-tight">
+<h3>引き上げられる状態</h3>
+<p class="t">任せても、おかしければ取り消せるようにしておく</p>
+</div>
+</div>
+<div class="talk">
+<div class="ln"><p class="who who-me">私</p><div class="bub bub-me"><p class="say-me">完全に確認しなくなったら、ひとつの「超えた」地点かも。ただ、何をやるか、という指示は残るだろうが</p></div></div>
+</div>
+<div class="strip"><div class="bar bar-blue"></div><p class="strip-t">注意：これは、私1人とAIの対話です。時期も、数学以外の領域のことも、ここからは言えません。AI関連の株を買う理由にも、避ける理由にもなりません</p></div>
+</section></div>
+<div class="sw"><section id="q-last" class="q" data-transition="fade">
+<p class="tag tag-q">問い</p>
+<h1>皆さんは、<br>何を手元に残しますか</h1>
+<p class="ask">ここまでの枠組みの多くは、AIが出したものでした。私は考えたのでしょうか。それとも、導かれたのでしょうか。皆さんなら、何を自分で決めますか。</p>
+</section></div>
+<div class="sw"><section id="appendix" data-transition="fade">
+<p class="tag tag-plain">付録</p>
+<h2>経緯と数字（質問が出たときに）</h2>
+<div class="cols">
+<div class="c3">
+<table class="tb">
+<tr class="hd"><th style="width:22%">日付（2026年）</th><th>出来事</th></tr>
+<tr><td>8月10日</td><td>Anthropicが、関連する成果を発表（Claudeによる記録の更新）</td></tr>
+<tr><td>10月6日＊</td><td>アルポーゲ氏がClaudeと着手</td></tr>
+<tr><td>11月15日＊</td><td>複数の数学的手法を組み合わせ、突破口を開く</td></tr>
+<tr><td>11月16日＊</td><td>一般化リーマン予想（より広い範囲の予想）にも到達</td></tr>
+<tr><td>11月20日</td><td>4ページの声明と証明のプログラムを、個人サイトで公開</td></tr>
+<tr class="row-now"><td>11月21日</td><td>LeanとMathlibのコミュニティが共同声明。命題も証明も正しいと認証</td></tr>
+<tr><td>11月22日</td><td>独立した検証記録が更新。時間のかかる検査2つが継続中</td></tr>
+</table>
+<p class="s">＊は本人の説明による。Leanは証明を機械で検査する仕組み、Mathlibはその定理集</p>
+</div>
+<div class="c2 stack">
+<div class="stat">
+<p class="fig">約1,700万行</p>
+<p class="cap">証明のプログラムの量</p>
+</div>
+<div class="stat">
+<p class="fig">175,187個</p>
+<p class="cap">プログラムを構成する部品（モジュール）の数</p>
+</div>
+<div class="stat">
+<p class="fig">登場する人</p>
+<p class="cap">アルポーゲ氏：証明を公開した数学者</p>
+<p class="cap">サザーランド氏：独立に検査した数学者</p>
+<p class="cap">バザード氏：機械検証を広めた数学者</p>
+<p class="cap">タオ氏：フィールズ賞を受けた数学者</p>
+</div>
+</div>
+</div>
+<p class="foot">出典：Lean・Mathlib共同声明、MITサザーランド氏の検証記録、GIGAZINE、ITmedia、The Next Web。11月24日確認</p>
+</section></div>
+</main>
+<p class="pg-foot">事実の部分は2026年11月24日時点の情報です。状況は今後変わる可能性があります。この資料は、投資判断の根拠となるものではありません。</p>
+<script>
+function fit() {
+  var w = Math.min(document.documentElement.clientWidth - 16, 1280);
+  document.documentElement.style.setProperty('--z', (w / 1920).toFixed(4));
+}
+fit(); addEventListener('resize', fit);
+</script>
+</body>
+</html>

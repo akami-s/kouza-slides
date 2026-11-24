@@ -1,0 +1,828 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>半導体株の急落は「選挙のせい」だったのか — 11月第1週の下落をデータで確かめる</title>
+<style>
+:root{
+  color-scheme: light;
+  --page:#ece6da; --surface:#f9f6f0; --panel:#f0ebe0;
+  --ink:#1a1f36; --ink2:#4a4f63; --muted:#8a8778;
+  --grid:#e6e0d4; --axis:#cbc4b5; --border:#e0d9cb;
+  --s1:#1a1f36; --s2:#e8a020; --s3:#c94d4a; --s4:#4a6aa0; --s7:#6d5bb0;
+  --ctx:#b5b0a3; --gold:#e8a020;
+  --navy:#1a1f36; --q:#c94d4a; --a:#4a6aa0; --ok:#2f8f5b;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--page);color:var(--ink);
+  font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic","Noto Sans JP",system-ui,sans-serif;
+  display:flex;align-items:flex-start;justify-content:center;padding-top:1.2vh;overflow:hidden}
+.deck{width:min(96vw,162vh);aspect-ratio:16/9;position:relative;container-type:size}
+.slide{position:absolute;inset:0;background:var(--surface);border:1px solid var(--border);border-radius:1cqw;
+  padding:2.2cqw 3.4cqw 1.8cqw;display:none;flex-direction:column;font-size:1.32cqw;line-height:1.6;overflow:hidden}
+.slide.on{display:flex}
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:.9em;min-height:1.9em}
+.chap{font-size:.78em;letter-spacing:.14em;color:var(--muted);font-weight:700}
+.chap b{display:inline-block;border-radius:1em;padding:.12em .85em;margin-right:.7em;color:#fff;background:var(--navy);letter-spacing:.08em}
+.chap b.q{background:var(--q)} .chap b.a{background:var(--a)}
+.ribbon{display:flex;gap:.35em;font-size:.72em;color:var(--muted)}
+.ribbon span{border:1px solid var(--border);border-radius:.5em;padding:.18em .7em;background:#fffefb;white-space:nowrap}
+.ribbon span b{font-weight:700;margin-right:.4em;font-variant-numeric:tabular-nums}
+.ribbon span.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+h1{font-size:1.72em;line-height:1.3;margin:0 0 .25em;letter-spacing:.01em;text-wrap:balance}
+h1 em{font-style:normal;background:linear-gradient(transparent 62%,#f3cf75 62%)}
+.lead{color:var(--ink2);font-size:1.02em;margin:0 0 .7em;max-width:62em}
+.lead b,.txt b{color:var(--ink)}
+.body{flex:1;min-height:0;display:flex;gap:2.2%}
+.body.col{flex-direction:column;gap:.8em}
+.chartbox{flex:1.65;min-width:0;min-height:0;display:flex;flex-direction:column;position:relative}
+.chartbox svg{flex:1;min-height:0;width:100%;display:block}
+.ctitle{font-size:.84em;color:var(--ink2);font-weight:700;margin-bottom:.2em}
+.legend{display:flex;flex-wrap:wrap;gap:.2em 1.2em;font-size:.78em;color:var(--ink2);margin-bottom:.2em}
+.legend i{display:inline-block;width:1.3em;height:.22em;border-radius:.2em;vertical-align:middle;margin-right:.4em}
+.side{flex:1;min-width:0;display:flex;flex-direction:column;gap:.75em;justify-content:center}
+.txt{font-size:.95em;color:var(--ink2)}
+.txt p{margin:0 0 .55em}
+.box{background:var(--panel);border:1px solid var(--border);border-radius:.7em;padding:.8em 1em;font-size:.93em;color:var(--ink2)}
+.box h3{margin:0 0 .3em;font-size:1em;color:var(--ink)}
+.box p{margin:0 0 .35em} .box p:last-child{margin:0}
+.box.qb{border-left:.3em solid var(--q)} .box.ab{border-left:.3em solid var(--a);background:#fffefb}
+.box.term{border-left:.3em solid var(--gold);background:#fbefcf}
+.tag{display:inline-block;font-size:.76em;font-weight:700;letter-spacing:.1em;margin-bottom:.25em}
+.tag.q{color:var(--q)} .tag.a{color:var(--a)}
+.foot{color:var(--muted);font-size:.72em;margin-top:.7em;line-height:1.5}
+.hid{visibility:hidden;opacity:0;transform:translateY(.4em);transition:opacity .35s,transform .35s}
+.slide.open .hid{visibility:visible;opacity:1;transform:none}
+.stamp{display:inline-flex;align-items:center;gap:.5em;font-weight:800;font-size:1.05em;border:.14em solid var(--q);color:var(--q);
+  border-radius:.5em;padding:.2em .8em;transform:rotate(-2deg);background:#fff;align-self:flex-start}
+.stamp.ok{border-color:var(--ok);color:var(--ok)}
+table.t{border-collapse:collapse;width:100%;font-size:.95em}
+table.t th,table.t td{border-bottom:1px solid var(--grid);padding:.5em .8em;text-align:left;vertical-align:middle}
+table.t th{color:var(--muted);font-weight:600;font-size:.84em}
+table.t td.n,table.t th.n{text-align:right;font-variant-numeric:tabular-nums}
+table.t td.hl{background:#f7e3a3;font-weight:800}
+table.t td.d{font-weight:700;white-space:nowrap}
+.cards{display:grid;gap:1em}
+.c3{grid-template-columns:repeat(3,1fr)} .c2{grid-template-columns:repeat(2,1fr)} .c4{grid-template-columns:repeat(4,1fr)}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:.8em;padding:1em 1.1em;display:flex;flex-direction:column;gap:.4em}
+.card .k{font-size:.8em;font-weight:800;letter-spacing:.1em;color:var(--muted)}
+.card .k span{display:inline-block;letter-spacing:.04em;color:#fff;background:var(--navy);border-radius:1em;padding:.1em .8em;margin-left:.3em}
+.card h3{margin:0;font-size:1.12em;line-height:1.45}
+.card p{margin:0;font-size:.9em;color:var(--ink2)}
+.big{font-size:2.3em;font-weight:800;letter-spacing:-.02em;line-height:1.1;font-variant-numeric:tabular-nums}
+.vote{display:flex;gap:.5em;margin-top:auto;padding-top:.6em}
+.vote button,.pick button{font:inherit;font-size:.92em;font-weight:700;flex:1;padding:.45em .3em;border-radius:.6em;border:1px dashed var(--axis);background:#fff;color:var(--muted);cursor:pointer}
+.vote button.sel,.pick button.sel{border-style:solid;border-color:var(--navy);background:var(--navy);color:#fff}
+.pick{display:flex;gap:.5em;margin-top:.5em}
+.vote button{border:1px solid #d3ccbd;background:#e5dfd2;color:#6f695d}
+.vote button:nth-child(1).sel{background:#2f9e5b;border-color:#2f9e5b;color:#fff}
+.vote button:nth-child(2).sel{background:#d93a2b;border-color:#d93a2b;color:#fff}
+[data-my] b{display:inline-block;border-radius:.5em;padding:.1em .7em;color:#fff;font-size:.92em}
+[data-my] b.hit{background:#2f9e5b} [data-my] b.miss{background:#d93a2b}
+/* はしご図 */
+.ladder{display:flex;align-items:stretch;gap:.5em;flex:1;min-height:0}
+.rung{flex:1;border-radius:.8em;border:1px solid var(--border);background:var(--panel);padding:.9em 1em;display:flex;flex-direction:column;gap:.35em;position:relative}
+.rung .bar{height:.45em;border-radius:.3em;margin-bottom:.3em}
+.rung h3{margin:0;font-size:1.02em} .rung .f{font-size:.82em;color:var(--muted);font-variant-numeric:tabular-nums}
+.rung p{margin:0;font-size:.82em;color:var(--ink2);line-height:1.55}
+.rung .cx{margin-top:auto;border-top:1px dashed var(--axis);padding-top:.45em;font-size:.86em;color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums;line-height:1.5}
+.rung .cx small{display:block;color:var(--muted);font-weight:400;font-size:.9em}
+.rung .v{font-size:1.7em;font-weight:800;font-variant-numeric:tabular-nums}
+.rung .rtag{font-size:.74em;font-weight:800;letter-spacing:.08em;color:var(--muted)}
+.rung.start{background:#fff;border-style:dashed;flex:.85}
+.rung.own{background:#fffefb;border:.16em solid var(--s1);flex:1.05}
+.rung.own .rtag{color:var(--s1)} .rung.own .v{font-size:2.3em;color:var(--s1)}
+.rung.start .v{margin-top:auto}
+.ladder .rung{padding:.7em .85em;gap:.25em} .ladder .rung .v{font-size:1.55em;line-height:1.2} .ladder .rung.own .v{font-size:2.2em}
+.rung .rm{font-size:.78em;color:var(--ink2);background:#fff;border:1px solid var(--border);border-radius:.5em;padding:.25em .6em;margin-top:.3em;font-variant-numeric:tabular-nums}
+.rung .rm b{color:var(--ink)}
+.chk{font-size:.86em;color:var(--ink2);text-align:center;font-variant-numeric:tabular-nums}
+.chk b{color:var(--ink)}
+.plus{align-self:center;font-size:1.6em;color:var(--axis);font-weight:700}
+/* 逆算の図 */
+.calc{display:flex;flex-direction:column;gap:.7em;flex:1.4;justify-content:center}
+.pbar{display:flex;height:3.6em;border-radius:.6em;overflow:hidden;gap:2px;background:var(--surface)}
+.pbar div{display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.88em;line-height:1.25;min-width:0;white-space:nowrap;overflow:hidden;transition:flex .25s}
+.pbar .pre{background:var(--ctx)} .pbar .day{background:var(--s2)}
+.plab{display:flex;justify-content:space-between;font-size:.82em;color:var(--muted)}
+input[type=range]{width:100%;accent-color:var(--navy)}
+.formula{font-size:1.12em;background:var(--panel);border:1px solid var(--border);border-radius:.6em;padding:.6em 1em;text-align:center;font-variant-numeric:tabular-nums}
+.formula b{font-size:1.25em}
+.steps{display:grid;grid-template-columns:auto 1fr;gap:.3em .6em;font-size:.93em;line-height:1.5;margin-top:.2em}
+.steps i{font-style:normal;font-weight:800;font-size:.8em;width:1.6em;height:1.6em;border-radius:50%;background:var(--gold);color:#fff;display:flex;align-items:center;justify-content:center;margin-top:.1em}
+.steps span{display:block;font-variant-numeric:tabular-nums;color:var(--ink);font-weight:600;padding-left:.2em}
+.three{display:flex;flex-direction:column;gap:.7em}
+.three .row{display:flex;gap:1em;align-items:flex-start;background:var(--panel);border:1px solid var(--border);border-radius:.7em;padding:.75em 1.1em}
+.three .no{flex:0 0 auto;width:2em;height:2em;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800}
+.three .tx{font-weight:700;font-size:1.05em;line-height:1.5}
+.three .tx small{display:block;font-weight:400;color:var(--ink2);font-size:.84em;margin-top:.15em}
+/* 仮説の扉・仮説の常時表示 */
+.chap .hy{display:inline-flex;gap:.25em;margin-right:.7em;vertical-align:middle}
+.chap .hy i{font-style:normal;letter-spacing:0;width:1.7em;height:1.7em;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--axis);color:var(--muted);background:#fff;font-size:.95em}
+.chap .hy i.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.chap .hy i.done{background:#e0d9cb;border-color:#e0d9cb;color:#6f695d;text-decoration:line-through}
+.chap .hs{letter-spacing:.02em;color:var(--ink);font-size:1.12em}
+.slide.divider{background:#f1ece1}
+.dv{flex:1;display:flex;align-items:center;gap:4%;min-height:0}
+.dv .L{flex:0 0 auto;font-size:11em;font-weight:900;line-height:1;color:var(--navy);text-align:center;padding:0 .12em}
+.dv .L small{display:block;font-size:.13em;letter-spacing:.4em;font-weight:800;color:var(--muted);margin-bottom:.5em;padding-left:.4em}
+.dv .R{flex:1;min-width:0;display:flex;flex-direction:column;gap:.7em}
+.dv .kick{font-size:.95em;font-weight:800;letter-spacing:.12em;color:var(--q)}
+.dv h1{font-size:2.15em;margin:0 0 .15em}
+.dv .box{background:#fff;font-size:1.02em}
+.flowlab{font-size:.8em;font-weight:800;letter-spacing:.1em;color:var(--muted);margin-top:.3em}
+.flow{display:flex;align-items:stretch;gap:.5em}
+.flow .stp{flex:1;background:#fff;border:1px solid var(--border);border-radius:.7em;padding:.7em .9em;font-size:.92em;font-weight:600;line-height:1.5;display:flex;gap:.6em;align-items:flex-start}
+.flow .stp i{font-style:normal;flex:0 0 auto;width:1.6em;height:1.6em;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.85em;font-weight:800}
+.flow .ar{align-self:center;color:var(--axis);font-size:1.4em;font-weight:700}
+.mine{font-size:.9em;color:var(--ink2);margin-top:.2em}
+.jlab{font-size:.95em;font-weight:800;letter-spacing:.12em;color:var(--a);margin-top:.2em}
+.judge{border-radius:.9em;padding:1.1em 1.4em;display:flex;flex-direction:column;justify-content:center;gap:.4em;border:.14em solid}
+.judge .jh{font-size:1.45em;font-weight:700;line-height:1.4} .judge .jh b{font-weight:900}
+.judge .jr{font-size:1.7em;font-weight:900;line-height:1.4}
+.judge.yes{border-color:#2f9e5b;background:#eef8f2} .judge.yes .jh b,.judge.yes .jr{color:#1f7a44}
+.judge.no{border-color:#d93a2b;background:#fdeeec} .judge.no .jh b,.judge.no .jr{color:#b92c1f}
+/* 表紙 */
+.slide.cover{background:var(--navy);color:#fff;justify-content:center;padding:4cqw 6cqw}
+.cover .kick{font-size:.95em;letter-spacing:.3em;color:#9fb4d6;font-weight:700;margin-bottom:1.2em}
+.cover h1{font-size:3.1em;line-height:1.28;margin:0 0 .5em}
+.cover h1 em{background:none;color:#f0b84a}
+.cover p{font-size:1.15em;color:#cfd9ea;max-width:36em;margin:0}
+.cover .meta{position:absolute;left:6cqw;bottom:3cqw;font-size:.82em;color:#8fa3c4}
+.cover .top{display:none}
+/* 透かし */
+.slide::after{content:'@Akami_Studio';position:absolute;right:3.4cqw;bottom:.5cqw;font-size:.7em;color:var(--muted);letter-spacing:.02em}
+.slide.cover::after{color:#7f8bab}
+.foot{padding-right:0}
+/* 表紙のQR */
+.cover .qr{position:absolute;right:6cqw;bottom:6cqw;width:17cqw;background:#fff;border-radius:1cqw;padding:1.1cqw 1.1cqw .8cqw;text-align:center;color:var(--ink);font-size:.82em;font-weight:700;line-height:1.4}
+.cover .qr svg{width:100%;height:auto;display:block;margin-bottom:.4em}
+/* スマホ */
+.rot{display:none}
+@media (orientation:portrait) and (max-width:720px){
+  body{align-items:center;padding-top:0}
+  .rot{display:block;position:fixed;left:0;right:0;top:6vh;text-align:center;font-size:15px;font-weight:700;color:var(--ink2);padding:0 16px}
+}
+/* ナビ */
+.nav{position:fixed;bottom:.8vh;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:.9em;font-size:clamp(13px,1.05vw,14px);color:var(--muted)}
+.nav button{font:inherit;padding:.3em 1em;border-radius:1.2em;border:1px solid var(--border);background:var(--surface);color:var(--ink2);cursor:pointer}
+.nav button.rvb{background:var(--navy);color:#fff;border-color:var(--navy)}
+.nav button.rvb[hidden]{display:none}
+#tip{position:fixed;pointer-events:none;background:#fff;border:1px solid var(--border);border-radius:.5em;padding:.45em .7em;font-size:clamp(10px,1vw,14px);
+  box-shadow:0 4px 14px rgba(0,0,0,.12);display:none;z-index:9;line-height:1.5;font-variant-numeric:tabular-nums}
+#tip b{display:block;color:var(--muted);font-weight:600;font-size:.9em}
+#tip i{display:inline-block;width:.7em;height:.7em;border-radius:50%;margin-right:.45em}
+svg text{font-family:inherit}
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+<!-- 1 表紙 -->
+<section class="slide cover" data-chap="">
+  <div class="kick">投資の学校 ／ 市場を読む練習</div>
+  <h1>半導体株の急落は<br><em>「選挙のせい」</em>だったのか</h1>
+  <p>11月第1週の半導体株とエヌビディアの下落について、講師が立てた3つの仮説を、株価のデータで1つずつ確かめます。</p>
+  <div class="meta">データは2026年11月9日の米国市場の終値まで ／ ←→キーで進む・戻る（スマホは左右にスワイプ）</div>
+  <div class="qr"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 31 31" class="segno"><path class="qrline" stroke="#1a1f36" d="M1 1.5h7m1 0h1m2 0h1m1 0h2m3 0h1m1 0h1m1 0h7m-29 1h1m5 0h1m1 0h1m1 0h1m2 0h1m3 0h1m1 0h2m1 0h1m5 0h1m-29 1h1m1 0h3m1 0h1m1 0h1m4 0h3m2 0h1m3 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m2 0h3m1 0h1m2 0h2m2 0h1m1 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m1 0h5m3 0h1m1 0h2m2 0h1m1 0h3m1 0h1m-29 1h1m5 0h1m3 0h2m1 0h1m3 0h2m1 0h1m1 0h1m5 0h1m-29 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-17 1h2m5 0h1m-20 1h1m2 0h6m1 0h1m5 0h2m1 0h3m2 0h1m1 0h3m-29 1h5m3 0h1m1 0h2m1 0h3m1 0h3m3 0h2m1 0h2m-24 1h1m1 0h2m5 0h1m1 0h1m4 0h3m1 0h1m1 0h1m-27 1h1m2 0h1m1 0h1m2 0h1m3 0h1m1 0h1m2 0h1m3 0h2m2 0h1m2 0h1m-29 1h1m1 0h1m1 0h1m1 0h2m1 0h2m1 0h3m1 0h1m1 0h1m1 0h4m4 0h1m-27 1h1m1 0h1m4 0h1m1 0h8m3 0h7m-29 1h4m1 0h2m4 0h3m1 0h1m1 0h1m1 0h1m3 0h2m1 0h1m1 0h1m-26 1h2m3 0h2m4 0h3m4 0h2m1 0h1m1 0h1m1 0h1m-27 1h3m1 0h1m2 0h1m4 0h3m6 0h1m1 0h1m-26 1h1m1 0h4m2 0h1m3 0h2m1 0h1m2 0h4m2 0h1m1 0h2m-28 1h2m4 0h1m2 0h1m1 0h1m3 0h1m2 0h2m1 0h2m2 0h1m2 0h1m-29 1h5m2 0h1m3 0h1m2 0h1m1 0h1m2 0h4m2 0h2m-27 1h3m1 0h1m1 0h2m1 0h1m3 0h2m1 0h2m2 0h8m-20 1h2m1 0h2m1 0h5m1 0h1m3 0h2m-26 1h7m1 0h1m2 0h2m1 0h3m2 0h2m1 0h1m1 0h2m-26 1h1m5 0h1m1 0h2m4 0h1m1 0h2m1 0h2m3 0h1m2 0h1m-28 1h1m1 0h3m1 0h1m1 0h1m1 0h7m2 0h7m2 0h1m-29 1h1m1 0h3m1 0h1m1 0h3m1 0h2m1 0h2m11 0h1m-29 1h1m1 0h3m1 0h1m2 0h3m3 0h2m4 0h1m1 0h2m1 0h3m-29 1h1m5 0h1m3 0h1m1 0h1m2 0h2m4 0h1m1 0h4m1 0h1m-29 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m2 0h6"/></svg>資料の一覧を<br>手元で見る</div>
+</section>
+
+<!-- 2 何が起きたか -->
+<section class="slide" data-chap="導入" data-days="1029,1103,1105,1109">
+  <h1>11月第1週、何が起きたか</h1>
+  <p class="lead">まず日付を正確にそろえます。ニュースの印象と実際の順番は、よくずれています。</p>
+  <div class="body col">
+    <table class="t" id="tblDays">
+      <thead><tr><th>日付（米国）</th><th>出来事</th><th class="n">S&amp;P500</th><th class="n">ナスダック</th><th class="n">SOX（半導体）</th><th class="n">NVDA</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <div class="cards c2">
+      <div class="box term"><h3>日本の急落は「翌日」に来る</h3><p>日経平均が <b id="n225"></b> と急落したのは11/6（金）です。これは米国の11/5（木）の急落を受けたものです。日米を比べるときは、いつも1日ずらして見ます。</p></div>
+      <div class="box term"><h3>結果が出た翌日は「上がっていた」</h3><p>民主党が上院・下院の両方を制したと分かった11/4、S&amp;P500は上昇しました。急落はその翌日です。この1日のずれが、今日の謎解きの入口になります。</p></div>
+    </div>
+  </div>
+  <div class="foot">SOX＝フィラデルフィア半導体株指数（米国の主な半導体関連30社の指数）。NVDA＝エヌビディア。騰落率は前日終値比。</div>
+</section>
+
+<!-- 3 事実1 -->
+<section class="slide" data-chap="事実 1/4" data-days="1105">
+  <h1>下がったのは「市場全体」か、それとも<em>一部</em>か</h1>
+  <p class="lead">10月以降の4本の線を、スタート地点を100にそろえて並べます。そろえると、どれが一番下がったかが一目で分かります。</p>
+  <div class="body">
+    <div class="chartbox"><div class="legend" id="lgOct"></div><svg id="chOct"></svg></div>
+    <div class="side">
+      <div class="box qb"><span class="tag q">見るポイント</span><p>4本は同じように下がっていますか。下がり方に<b>順番</b>はありますか。</p></div>
+      <div class="box ab hid"><span class="tag a">読み取れること</span>
+        <p>下げ幅は S&amp;P500 <b data-v="octRet.SPX" data-f="pct"></b> ＜ ナスダック <b data-v="octRet.IXIC" data-f="pct"></b> ＜ SOX <b data-v="octRet.SOX" data-f="pct"></b> の順です。</p>
+        <p>半導体に近づくほど、下げが大きくなっています。</p>
+        <p>エヌビディアは <b data-v="octRet.NVDA" data-f="pct"></b> で、SOXと<b>ほぼ同じ</b>です。この期間、エヌビディアだけが特別に弱かったわけではありません。</p></div>
+    </div>
+  </div>
+  <div class="foot">9月30日の終値を100とした指数。グラフにマウスを乗せると各日の値が出ます。</div>
+</section>
+
+<!-- 4 事実2 -->
+<section class="slide" data-chap="事実 2/4">
+  <h1>「ふつうの会社」の株は、<em>上がっていた</em></h1>
+  <p class="lead">S&amp;P500は、大きな会社ほど指数への影響が大きくなる仕組みです。500社を同じ重みで平均した「均等加重」と比べると、大型株の影響を外して見られます。</p>
+  <div class="body">
+    <div class="chartbox"><div class="ctitle">10月以降の騰落率（%）</div><svg id="chBar5"></svg></div>
+    <div class="side">
+      <div class="box term"><h3>均等加重とは</h3><p>ふつうのS&amp;P500では、時価総額の大きいエヌビディアやマイクロソフトが指数を大きく動かします。均等加重は500社を1社＝1票で平均したものです。</p></div>
+      <div class="box ab hid"><span class="tag a">読み取れること</span>
+        <p>均等加重は <b data-v="octRet.RSP" data-f="pct"></b> と上昇しています。</p>
+        <p>つまり今回は「株式市場全体の下げ」ではありません。<b>半導体と、それに近い大型株の下げ</b>です。</p></div>
+    </div>
+  </div>
+  <div class="foot">均等加重S&amp;P500は連動ETF（RSP）の値動きで代用。期間は9月30日終値〜11月9日終値。</div>
+</section>
+
+<!-- 5 事実3 -->
+<section class="slide" data-chap="事実 3/4">
+  <h1>エヌビディアは、今年ずっと<em>半導体の波に乗れていなかった</em></h1>
+  <p class="lead">期間を年初からに広げます。直近の急落だけを見ていると気づかない、もっと長い流れが見えてきます。</p>
+  <div class="body">
+    <div class="chartbox"><div class="legend" id="lgYtd"></div><svg id="chYtd"></svg></div>
+    <div class="side">
+      <div class="box qb"><span class="tag q">見るポイント</span><p>半導体全体（SOX）とエヌビディアの線は、いつから離れ始めていますか。</p></div>
+      <div class="box ab hid"><span class="tag a">読み取れること</span>
+        <p>年初来でSOXは <b data-v="ytdRet.SOX" data-f="pct"></b>、エヌビディアは <b data-v="ytdRet.NVDA" data-f="pct"></b> です。</p>
+        <p>差が開いたのは主に<b>4〜6月</b>です。半導体株が大きく上げた局面で、エヌビディアは置いていかれました。</p></div>
+    </div>
+  </div>
+  <div class="foot">2025年12月31日の終値を100とした指数。</div>
+</section>
+
+<!-- 6 事実4 -->
+<section class="slide" data-chap="事実 4/4">
+  <h1>エヌビディアの予想PERは、<em>2年で半分以下</em>になった</h1>
+  <p class="lead">株価そのものではなく「利益に対してどれだけ高く買われているか」を見ます。期間は、評価が高かった2024年からにします。</p>
+  <div class="body">
+    <div class="chartbox"><div class="legend" id="lgPer"></div><svg id="chPer"></svg></div>
+    <div class="side">
+      <div class="box term"><h3>予想PERとは</h3><p>株価 ÷ これから1年間に見込まれる1株あたり利益。「利益の何年分で買われているか」を表します。低いほど、利益に対して安く買われています。</p></div>
+      <div class="box ab hid"><span class="tag a">読み取れること</span>
+        <p>2024年末の <b>34.7倍</b> から、いまは <b>14.7倍</b> です。</p>
+        <p>競合3社（AMD・ブロードコム・TSMC）より高く評価されていたのが、2025年に並び、いまは一番低くなっています。</p></div>
+    </div>
+  </div>
+  <div class="foot">予想PERは「株価 ÷ 先行き4四半期のEPS予想の合計」で講師が計算した近似値（各決算直前の予想を使用）。週次。</div>
+</section>
+
+<!-- 7 仮説 -->
+<section class="slide" data-chap="仮説" data-badge="q">
+  <h1>事実を見て、講師は<em>3つの仮説</em>を立てました</h1>
+  <p class="lead">事実で見たとおり、下げの中心は半導体株でした。そこで仮説も半導体株について立てます。それぞれ「当たり」「外れ」を予想してから、次へ進みましょう。</p>
+  <div class="body col">
+    <div class="cards c3" style="flex:1">
+      <div class="card"><div class="k">仮説 A　<span>選挙の前を見る</span></div><h3>民主党の勝利は、前もって半導体株に織り込まれていた</h3><p>民主党が勝てばAIのデータセンター投資が抑えられる。だから投資家は、選挙の前から半導体株を少しずつ売っていたはずだ。</p>
+        <div class="vote" data-h="A"><button>当たり</button><button>外れ</button></div></div>
+      <div class="card"><div class="k">仮説 B　<span>結果が出たあとを見る</span></div><h3>半導体株の急落は、「上院も取った」という想定外の分だ</h3><p>下院は民主党と見られていたが、上院まで取るとは思われていなかった。その驚きの分が、11/5の半導体株の急落になった。</p>
+        <div class="vote" data-h="B"><button>当たり</button><button>外れ</button></div></div>
+      <div class="card"><div class="k">仮説 C　<span>エヌビディアだけを見る</span></div><h3>エヌビディアのCEOの件は、前から織り込まれていた</h3><p>CEOに関する疑惑は、報道の前からプロの投資家には伝わっていた。それが予想PERの低さの一因になっていた。</p>
+        <div class="vote" data-h="C"><button>当たり</button><button>外れ</button></div></div>
+    </div>
+    <div class="box ab"><p><b>AとBは2つで1組です。</b>同じ半導体株の下落を、Aは選挙の前から、Bは結果が出たあとから確かめます。Cは、その中でエヌビディアだけにあった理由を確かめます。</p></div>
+    <div class="box term"><h3>「織り込む」とは</h3><p>まだ起きていない出来事を見越して、株価が先に動くことです。10月29日、米紙がエヌビディアCEOの私的な交友関係と情報管理をめぐる疑惑を報じ、11月8日に取締役会が独立調査を発表しました。今日は報道の中身ではなく、株価がいつ反応したかだけを見ます。</p></div>
+  </div>
+</section>
+
+<!-- 扉A -->
+<section class="slide divider" data-chap="検証 ここから仮説A" data-hyp="A">
+  <div class="dv">
+    <div class="L"><small>仮説</small>A</div>
+    <div class="R">
+      <div class="kick">ここから、仮説Aを確かめます</div>
+      <h1>民主党の勝利は、<em>前もって半導体株に織り込まれていた</em></h1>
+      <div class="box qb"><span class="tag q">もし正しければ、こうなっているはず</span><p>民主党が上院を取る確率が上がるにつれて、半導体株は選挙の前から少しずつ弱くなっていたはずです。</p></div>
+      <div class="flowlab">確かめる順番</div>
+      <div class="flow"><div class="stp"><i>1</i>道具①「予測市場」で、予想の強さを数字にする</div><div class="ar">→</div><div class="stp"><i>2</i>確率と半導体株を並べて、連動を見る</div><div class="ar">→</div><div class="stp"><i>3</i>結果が出た直後の動きを見る</div></div>
+      <div class="mine">みなさんの予想：<span data-my="A">—</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 10 道具2 -->
+<section class="slide" data-hyp="A" data-chap="道具① 仮説Aの検証">
+  <h1>道具①　「予想」を<em>数字で測る</em> — 予測市場</h1>
+  <p class="lead">「市場は民主党の勝利を予想していた」と言うには、予想の強さを数字で知る必要があります。そこで予測市場の値段を使います。</p>
+  <div class="body col">
+    <div class="cards c2">
+      <div class="box term"><h3>予測市場とは</h3><p>「民主党が上院を取る」という出来事に、お金を賭けて売買する市場です。当たれば1ドル、外れれば0ドルになる券が取引されます。券の値段が76セントなら、参加者は確率を<b>約76%</b>と見ていることになります。</p></div>
+      <div class="box term"><h3>なぜ世論調査ではなく予測市場か</h3><p>値段が毎日つくので、株価と日付をそろえて比べられます。自分のお金を賭けた人たちの見方なので、投資家の予想に近い物差しになります。</p></div>
+    </div>
+    <div class="cards c4" style="flex:1;align-items:stretch">
+      <div class="card"><div class="k">1月末</div><div class="big">36%</div><p>民主党の上院奪取は「難しい」と見られていた。</p></div>
+      <div class="card"><div class="k">8月末</div><div class="big">51%</div><p>五分五分。</p></div>
+      <div class="card"><div class="k">9月末</div><div class="big">63%</div><p>1か月で12ポイント上昇。民主党優位に傾いた。</p></div>
+      <div class="card" style="background:var(--navy);color:#fff"><div class="k" style="color:#aab4d0">11/3 投票日</div><div class="big">76%</div><p style="color:#cfd9ea">4回に3回は民主党が取る、という見方。</p></div>
+    </div>
+  </div>
+  <div class="foot">Polymarket「民主党は2026年中間選挙後に上院を支配するか」の日次価格。</div>
+</section>
+
+<!-- 11 検証A -->
+<section class="slide" data-hyp="A" data-chap="検証 仮説A" data-badge="q" data-days="1103">
+  <h1>確率が上がるとき、半導体株は<em>下がっていたか</em></h1>
+  <p class="lead">仮説Aが正しければ、民主党の確率が上がる時期に、半導体株は弱くなっているはずです。上下のグラフを見比べます。</p>
+  <div class="body">
+    <div class="chartbox">
+      <div class="ctitle">民主党が上院を取る確率（%）</div><svg id="chProb" style="flex:.8"></svg>
+      <div class="ctitle" style="margin-top:.3em">半導体株の強さ（SOX − ナスダックの累積、%ポイント）</div><svg id="chSemi"></svg>
+    </div>
+    <div class="side" style="flex:1.12;gap:.5em;font-size:.93em">
+      <div class="box term"><h3>下のグラフは、なぜナスダックを引くのか</h3><p>半導体株は、金利や景気など市場全体の理由でも動きます。ナスダックの動きを引くと、<b>半導体だけの理由で動いた分</b>が残ります。右上がりなら、半導体が強い時期です。</p></div>
+      <div class="box qb"><span class="tag q">見るポイント</span><p>上の線が上がった時期（2〜4月、9月）に、下の線は下がっていますか。</p></div>
+      <div class="box ab hid"><span class="tag a">読み取れること</span>
+        <p>2〜4月も9月も、確率が上がる中で半導体は<b>上昇</b>していました。9月は確率が51%→63%、半導体は約7ポイント上昇です。</p>
+        <p>週ごとの動きを比べても、関係はほぼゼロでした（相関 0.01）。</p></div>
+      <div class="stamp hid">仮説A　✕ 外れ</div>
+    </div>
+  </div>
+  <div class="foot">相関は年初〜11/2の週次43週で計算。相関0は「連動していない」、−1に近いほど「逆に動く」。</div>
+</section>
+
+<!-- 12 11/4 -->
+<section class="slide" data-hyp="A" data-chap="検証 仮説A" data-badge="a" data-days="1103,1105">
+  <h1>織り込みは、結果が出た<em>翌日に始まった</em></h1>
+  <p class="lead">11/4、指数は上がりました。けれども中身を「AI投資のお金を払う会社」と「受け取る会社」に分けると、まったく違う景色になります。</p>
+  <div class="body">
+    <div class="chartbox"><div class="legend" id="lgNov4"></div><svg id="chNov4"></svg></div>
+    <div class="side">
+      <div class="box term"><h3>払い手と受け手</h3><p><b>払い手</b>：データセンターを建てる大手4社（マイクロソフト・アマゾン・グーグル・メタ）。<br><b>受け手</b>：その注文を受ける半導体メーカー（SOX）。</p></div>
+      <div class="box ab hid"><span class="tag a">読み取れること</span>
+        <p>11/4は払い手が <b data-v="nov4.2026-11-04.pay" data-f="pct"></b>、受け手が <b data-v="nov4.2026-11-04.sox" data-f="pct"></b>。</p>
+        <p>「投資が減れば、払う側は楽になり、受け取る側は困る」という見方が、<b>この日に初めて</b>株価に出ました。翌11/5、それが市場全体に広がりました。</p></div>
+    </div>
+  </div>
+  <div class="foot">大手4社は4銘柄の単純平均。前日終値比の騰落率（%）。</div>
+</section>
+
+<!-- 扉B -->
+<section class="slide divider" data-chap="検証 ここから仮説B" data-hyp="B">
+  <div class="dv">
+    <div class="L"><small>仮説</small>B</div>
+    <div class="R">
+      <div class="kick">ここから、仮説Bを確かめます</div>
+      <h1>半導体株の急落は、「上院も取った」という<em>想定外の分</em>だ</h1>
+      <div class="box qb"><span class="tag q">もし正しければ、こうなっているはず</span><p>上院を取る確率は事前に低く見られていて、その驚きの大きさで半導体株の下げ幅を説明できるはずです。</p></div>
+      <div class="flowlab">確かめる順番</div>
+      <div class="flow"><div class="stp"><i>1</i>道具②「確率から逆算」の考え方を学ぶ</div><div class="ar">→</div><div class="stp"><i>2</i>逆算した数字の読み方を知る</div><div class="ar">→</div><div class="stp"><i>3</i>実際の確率と下げ幅を式に入れて判定する</div></div>
+      <div class="mine">みなさんの予想：<span data-my="B">—</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 13 道具3 -->
+<section class="slide" data-hyp="B" data-chap="道具② 仮説Bの検証">
+  <h1>道具②　確率から「驚きの大きさ」を<em>逆算する</em></h1>
+  <p class="lead">ここでの確率は、<b>悪い出来事が起きる確率</b>（例：民主党が上院を取る確率）です。株価は、起きそうな分だけ先に下げておきます。起きる確率が30%と見られていれば、起きた場合の悪影響の30%分はもう下げてあり、実際に起きた日に動くのは残りの70%分です。</p>
+  <div class="body">
+    <div class="calc">
+      <div class="plab"><span>出来事が起きた場合の、悪影響の全体</span><span id="cTot"></span></div>
+      <div class="pbar"><div class="pre" id="cPre"></div><div class="day" id="cDay"></div></div>
+      <div class="plab"><span>← 事前に下げてあった分（起きる確率の分）</span><span>実際に起きた日の下げ（残りの分）→</span></div>
+      <div style="margin-top:.6em"><div class="plab"><span>出来事が起きる確率（事前の見方）を動かしてみましょう</span><span id="cP"></span></div>
+      <input type="range" id="cR" min="10" max="90" step="5" value="30"></div>
+      <div class="formula">全体の影響 ＝ 当日の下げ ÷（1 − 起きる確率） ＝ <span id="cF"></span></div>
+      <div class="box ab" style="margin-top:.3em"><p id="cN"></p></div>
+    </div>
+    <div class="side">
+      <div class="box"><h3>2つの数字を区別します</h3><p><b>確率</b>＝その出来事が起きる見込み。予測市場で測れます。<br><b>悪影響の全体</b>＝起きたら株価が何%下がるか。これを逆算します。</p></div>
+      <div class="box term"><h3>例：起きる確率30%の出来事が実際に起き、当日に −4% 下げた場合</h3>
+        <div class="steps">
+          <i>1</i><div>割合は小数で書きます。30% → <b>0.3</b>、残りの70% → <b>0.7</b></div>
+          <i>2</i><div>当日の下げは、全体の70%にあたります<span>当日の下げ ＝ 全体 × 0.7</span><span>−4% ＝ 全体 × 0.7</span></div>
+          <i>3</i><div>両辺を0.7で割ると、全体が出ます<span>全体 ＝ −4% ÷ 0.7 ＝ <b>−5.7%</b></span></div>
+          <i>4</i><div>事前に下げてあった分は、全体の30%です<span>−5.7% × 0.3 ＝ <b>−1.7%</b></span></div>
+          <i>5</i><div>確かめ：事前の分と当日の分を足すと、全体に戻ります<span>−1.7% ＋（−4.0%）＝ −5.7%</span></div>
+        </div></div>
+    </div>
+  </div>
+  <div class="foot">当日の下げを −4% に固定した例。起きる確率が高いほど、同じ下げ幅でも「事前に下げてあったはずの分」が大きくなります。その下げが実際にあったかどうかが、決め手になります。</div>
+</section>
+
+<!-- 13b 読み方 -->
+<section class="slide" data-chap="道具② 仮説Bの検証" data-hyp="B">
+  <h1>逆算した数字は、<em>実際の株価と照らし合わせる</em></h1>
+  <p class="lead">逆算は「もしこの出来事が原因なら」という仮定の計算です。答えの大きさだけでは、正しいとも間違いとも言えません。前のページでスライダーを90%にした場合を例に、確かめ方を見ます。</p>
+  <div class="body col">
+    <div class="cards c3">
+      <div class="card"><div class="k">逆算した全体の影響</div><div class="big">−40%</div><p>−4% ÷ 0.1</p></div>
+      <div class="card" style="background:#f7e3a3"><div class="k">事前に下げてあったはずの分</div><div class="big">−36%</div><p>−40% × 0.9</p></div>
+      <div class="card" style="background:#fff;border-left:.3em solid var(--q)"><div class="k" style="color:var(--q)">確かめること</div><h3>確率が上がっていった時期に、株価は本当に36%下げていたか</h3><p>計算としては正しい数字です。あとは実際の株価を見るだけです。</p></div>
+    </div>
+    <div class="jlab hid">判定のしかた</div>
+    <div class="cards c2 hid" style="flex:1">
+      <div class="judge yes"><div class="jh">事前の下げが<b>見つかる</b></div><div class="jr">→ その出来事で、下げを説明できる</div></div>
+      <div class="judge no"><div class="jh">事前の下げが<b>見つからない</b></div><div class="jr">→ その出来事だけでは説明できない。<br>別の原因を探す</div></div>
+    </div>
+  </div>
+  <div class="foot">確率が高かった出来事ほど、事前に下げてあったはずの分が大きくなります。大きな下げは見落としようがないので、確かめやすくなります。</div>
+</section>
+
+<!-- 14 検証B -->
+<section class="slide" data-hyp="B" data-chap="検証 仮説B" data-badge="q" data-days="1103,1105">
+  <h1>実際の数字を入れると、<em>つじつまが合わない</em></h1>
+  <p class="lead">投票日の確率は76%でした。半導体株（SOX）が11/4〜5の2日間でナスダックより余計に下げた分、つまり半導体だけの理由で下げた分を、道具②の式に入れます。</p>
+  <div class="body">
+    <div class="calc">
+      <div class="cards c4">
+        <div class="card"><div class="k">事前の確率</div><div class="big">76%</div><p>民主党が上院を取る確率（投票日）</p></div>
+        <div class="card"><div class="k">結果後2日間の下げ</div><div class="big" data-v="semi45" data-f="pt"></div><p>SOXがナスダックより余計に下げた分（11/4に −4.5、11/5に −6.7）</p></div>
+        <div class="card hid" style="background:#fdeee9;border-color:var(--q)"><div class="k" style="color:var(--q)">逆算した全体の影響</div><div class="big" style="color:var(--q)">−47</div><p>−11.2 ÷ 0.24</p></div>
+        <div class="card hid" style="background:#fdeee9;border-color:var(--q)"><div class="k" style="color:var(--q)">事前に下げてあったはずの分</div><div class="big" style="color:var(--q)">−36</div><p>−47 × 0.76</p></div>
+      </div>
+      <div class="box ab hid"><span class="tag a">読み取れること</span>
+        <p>仮説Bが正しければ、半導体株は選挙の前に、ナスダックより<b>36ポイント余計に下げていたはず</b>です。</p>
+        <p>ところが仮説Aの検証で見たとおり、確率が上がった時期に半導体株は下げていません。確率が51%から63%へ急上昇した9月、半導体株は逆に約7ポイント強くなっていました。</p>
+        <p><b>事前の下げが見つからない</b>ので、「勝敗の驚き」だけでは2日間で約11ポイントの下げを説明できません。</p></div>
+    </div>
+    <div class="side">
+      <div class="box qb"><span class="tag q">仮説Bの言い分</span><p>「上院まで取ったのが想定外だった。だから急落した」</p></div>
+      <div class="box hid"><h3>式が教えてくれること</h3><p>勝敗が分かったことだけが原因なら、下げの大半は選挙の前に済んでいたはずです。そうなっていない以上、別の何かが、この2日間に新しく値段に入ったことになります。</p></div>
+      <div class="stamp hid">仮説B　✕ 外れ</div>
+    </div>
+  </div>
+  <div class="foot">半導体株が大きく下げた7月は、確率がほぼ横ばい（42%→44%）でした。ナスダックを引かずにSOXそのもの（2日間で −15.0%）で計算しても、事前に下げてあったはずの分は −45% を超えます。SOXは投票日の時点で年初から約50%上げており、そのような下げはありません。</div>
+</section>
+
+<!-- 扉C -->
+<section class="slide divider" data-chap="検証 ここから仮説C" data-hyp="C">
+  <div class="dv">
+    <div class="L"><small>仮説</small>C</div>
+    <div class="R">
+      <div class="kick">ここから、仮説Cを確かめます</div>
+      <h1>エヌビディアのCEOの件は、<em>前から織り込まれていた</em></h1>
+      <div class="box qb"><span class="tag q">もし正しければ、こうなっているはず</span><p>10/29の報道より前から、エヌビディアだけが売られていたはずです。予想PERの低さも、その頃から始まっているはずです。</p></div>
+      <div class="flowlab">確かめる順番</div>
+      <div class="flow"><div class="stp"><i>1</i>道具③「4つの層に分ける」で、エヌビディアだけの動きを取り出す</div><div class="ar">→</div><div class="stp"><i>2</i>報道の前に動いていたかを見る</div><div class="ar">→</div><div class="stp"><i>3</i>PERの低さがいつ始まったかを見る</div></div>
+      <div class="mine">みなさんの予想：<span data-my="C">—</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 8 道具1 -->
+<section class="slide" data-hyp="C" data-chap="道具③ 仮説Cの検証">
+  <h1>道具③　値動きを<em>4つの層</em>に分ける</h1>
+  <p class="lead">仮説Cは「エヌビディアだけの理由」があったかを問うものです。そこで、エヌビディアの値動きを4つの層に分け、ほかの理由で動いた分を取り除きます。最後に残った分が、知りたい数字です。下は11/5の実際の数字です。</p>
+  <div class="body col">
+    <div class="ladder">
+      <div class="rung start"><div class="rtag">出発点</div><div class="bar" style="background:var(--muted)"></div><h3>エヌビディアの値動き</h3><p>この中には、エヌビディア以外の理由で下げた分が混ざっています。</p><div class="v" id="l_nv"></div></div>
+      <div class="plus">→</div>
+      <div class="rung"><div class="rtag">取り除く ①</div><div class="bar" style="background:var(--s4)"></div><h3>市場全体</h3><div class="f">＝ S&amp;P500</div><p>どの株も、まず市場全体の波に乗って動きます。</p><div class="cx" id="c_mkt"></div><div class="v" id="l_mkt"></div><div class="rm" id="rm_mkt"></div></div>
+      <div class="rung"><div class="rtag">取り除く ②</div><div class="bar" style="background:var(--s3)"></div><h3>テック分</h3><div class="f">＝ ナスダック − S&amp;P500</div><p>ナスダックから市場全体の波を引くと、テック株だから上乗せされた分が残ります。</p><div class="cx" id="c_tech"></div><div class="v" id="l_tech"></div><div class="rm" id="rm_tech"></div></div>
+      <div class="rung"><div class="rtag">取り除く ③</div><div class="bar" style="background:var(--s2)"></div><h3>半導体分</h3><div class="f">＝ SOX − ナスダック</div><p>SOXからナスダックを引くと、半導体だから上乗せされた分が残ります。</p><div class="cx" id="c_semi"></div><div class="v" id="l_semi"></div><div class="rm" id="rm_semi"></div></div>
+      <div class="plus">→</div>
+      <div class="rung own"><div class="rtag">残った分 ＝ 知りたい数字</div><div class="bar" style="background:var(--s1)"></div><h3>エヌビディア固有分</h3><div class="f">＝ NVDA − SOX</div><p>3つを取り除いて残った分。エヌビディアだけの理由で動いた分です。</p><div class="cx" id="c_own"></div><div class="v" id="l_own"></div></div>
+    </div>
+    <div class="chk" id="c_sum"></div>
+    <div class="box ab hid"><span class="tag a">11/5の読み方</span><p>急落の日、エヌビディア固有分は<b>プラス</b>でした。エヌビディアは半導体全体よりも下げが小さかった、という意味です。この日の下げは「エヌビディアの問題」ではなく、<b>市場全体と半導体の問題</b>でした。</p></div>
+  </div>
+  <div class="foot">11/5の前日終値比の騰落率（%）どうしの引き算。結果の単位は%ポイントです。「ここまで除いた残り」は、エヌビディアの騰落率からその指数の騰落率を引いた値です。</div>
+</section>
+
+<!-- 9 4層の結果 -->
+<section class="slide" data-hyp="C" data-chap="道具③ 仮説Cの検証" data-days="1105,1109">
+  <h1>4つの層を、10月から<em>積み上げて</em>見る</h1>
+  <p class="lead">毎日の4つの数字を足し上げていくと、どの層がいつから下げたかが線で見えます。</p>
+  <div class="body">
+    <div class="chartbox"><div class="legend" id="lgLay"></div><svg id="chLay"></svg></div>
+    <div class="side">
+      <div class="box qb"><span class="tag q">見るポイント</span><p>一番大きく下げた層はどれですか。エヌビディア固有分は、どの日に動いていますか。</p></div>
+      <div class="box ab hid"><span class="tag a">読み取れること</span>
+        <p><b>半導体分</b>が10月上旬から下げ続け、11/5に一段と落ちました。</p>
+        <p><b>エヌビディア固有分</b>は11/5まで上向きで、<b>11/9の1日だけ</b>急落しています。</p>
+        <p>11/5と11/9は、まったく別の種類の下げです。</p></div>
+    </div>
+  </div>
+  <div class="foot">9月30日を0とした累積（%ポイント）。日々の数字を足し上げられるよう対数で計算しているため、1日ごとの値は前のページとわずかに異なります。</div>
+</section>
+
+<!-- 15 検証C-1 -->
+<section class="slide" data-hyp="C" data-chap="検証 仮説C" data-badge="q" data-days="1029,1109">
+  <h1>エヌビディアは、報道の<em>前から</em>売られていたか</h1>
+  <p class="lead">仮説Cが正しければ、10/29の報道より前に、エヌビディア固有分の線が下がり始めているはずです。道具③の4本目（エヌビディア固有分）だけを取り出します。</p>
+  <div class="body">
+    <div class="chartbox"><div class="ctitle">エヌビディア固有分（NVDA − SOX の累積、%ポイント）</div><svg id="chOwn"></svg></div>
+    <div class="side">
+      <div class="box qb"><span class="tag q">見るポイント</span><p>10/29の点線より左で、線は下がっていますか。点線のあとはどうですか。</p></div>
+      <div class="box ab hid"><span class="tag a">読み取れること</span>
+        <p>10月は10/26まで、エヌビディアは半導体全体より<b>約7ポイント強かった</b>。</p>
+        <p>報道のあとも11/5までは、むしろ上向きです。</p>
+        <p>報道の直前2日間は弱いものの、ふだんの値動きの範囲内でした。</p></div>
+    </div>
+  </div>
+  <div class="foot">9月30日を0とした累積。直前2日間（10/27・28）は、AMDの急騰でSOXが押し上げられた日でもあります。</div>
+</section>
+
+<!-- 16 検証C-2 -->
+<section class="slide" data-hyp="C" data-chap="検証 仮説C" data-badge="a" data-days="1109">
+  <h1>市場が反応したのは、<em>11/9の1日だけ</em></h1>
+  <p class="lead">毎日のエヌビディア固有分を「ふだんの何倍の動きか」で表します。±2倍を超える日は、めったにありません。</p>
+  <div class="body">
+    <div class="chartbox"><div class="ctitle">エヌビディア固有分の毎日の動き（ふだんの値動きの何倍か）</div><svg id="chZ"></svg></div>
+    <div class="side">
+      <div class="box term"><h3>「ふだんの何倍」とは</h3><p>その日の動きを、平常時の1日のばらつき（標準偏差）で割った値です。2倍を超える日は月に1〜2日ほど。4倍を超える日は、めったにありません。</p></div>
+      <div class="box ab hid"><span class="tag a">読み取れること</span>
+        <p>11/9は <b id="z1109"></b>。指数が上がる中、エヌビディアだけが売られました。出来高もふだんの3.9倍です。</p>
+        <p>きっかけは10/29の報道ではなく、<b>11/8の取締役会による調査の発表</b>でした。</p></div>
+    </div>
+  </div>
+  <div class="foot">ふだんの値動き＝年初〜10/28の標準偏差（2.4%ポイント）。出来高は直前60日平均との比。</div>
+</section>
+
+<!-- 17 検証C-3 -->
+<section class="slide" data-hyp="C" data-chap="検証 仮説C" data-badge="q" data-days="1029">
+  <h1>PERの低さは、<em>いつ始まったか</em></h1>
+  <p class="lead">エヌビディアの予想PERを、競合3社の真ん中の値で割ります。1.0より上なら競合より高く、下なら安く評価されています。</p>
+  <div class="body">
+    <div class="chartbox"><div class="ctitle">エヌビディアの予想PER ÷ 競合3社の中央値</div><svg id="chRel"></svg></div>
+    <div class="side">
+      <div class="box qb"><span class="tag q">見るポイント</span><p>1.0を下回ったのはいつですか。一番低かったのはいつですか。報道の直前、線はどちらを向いていますか。</p></div>
+      <div class="box ab hid"><span class="tag a">読み取れること</span>
+        <p>競合より安くなったのは<b>2025年半ば</b>。報道の1年以上前です。</p>
+        <p>底は<b>今年6月（0.58）</b>で、報道の直前には0.89まで<b>回復</b>していました。</p>
+        <p>疑惑が先に織り込まれていたなら、直前に安くなるはずです。実際は逆でした。</p></div>
+      <div class="stamp hid">仮説C　✕ 外れ</div>
+    </div>
+  </div>
+  <div class="foot">競合3社＝AMD・ブロードコム・TSMC。週次。予想PERは講師による近似値。</div>
+</section>
+
+<!-- 18 PER内訳 -->
+<section class="slide" data-hyp="C" data-chap="検証 仮説C" data-badge="a">
+  <h1>PERが下がったのは、株価が下がったからでは<em>ない</em></h1>
+  <p class="lead">PERは「株価 ÷ 利益予想」です。分子と分母に分けると、何が起きていたかが分かります。</p>
+  <div class="body">
+    <div style="flex:1.5;min-width:0;display:flex;flex-direction:column;justify-content:center">
+      <table class="t" id="tblDec">
+        <thead><tr><th>期間</th><th class="n">予想PER</th><th class="n">株価</th><th class="n">利益予想</th><th>何が起きたか</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="side">
+      <div class="box qb"><span class="tag q">見るポイント</span><p>株価と利益予想、どちらが大きく動いていますか。最後の行だけ違う点はどこですか。</p></div>
+      <div class="box ab hid"><span class="tag a">読み取れること</span>
+        <p>2025年から、利益予想は大きく伸びたのに、株価がついていきませんでした。市場は「<b>この利益成長は長く続かない</b>」と見ていたことになります。</p>
+        <p>これはAI投資の持続性への疑いで、CEO個人の話とは別です。直近2週間だけは、予想が変わらないまま株価が下がりました。</p></div>
+    </div>
+  </div>
+  <div class="foot">利益予想＝先行き4四半期のEPS予想の合計。各決算直前の予想を並べた近似値のため、当時の実際の予想とはずれがあります。</div>
+</section>
+
+<!-- 19 判定 -->
+<section class="slide" data-chap="解釈" data-days="1029,1103,1105,1109">
+  <h1>3つの仮説は、<em>3つとも外れ</em>ました</h1>
+  <p class="lead">みなさんの予想と比べてみてください。外れたこと自体が、今日いちばんの収穫です。</p>
+  <div class="body col">
+    <table class="t" id="tblJudge">
+      <thead><tr><th>講師の仮説</th><th>みなさんの予想</th><th>判定</th><th>データが示したこと</th></tr></thead>
+      <tbody>
+        <tr><td class="d">A　民主党の勝利は、前もって<br>半導体株に織り込まれていた</td><td data-my="A">—</td><td><span class="stamp" style="font-size:.9em">✕ 外れ</span></td><td>確率が上がっても半導体株は下がっていなかった。織り込みが始まったのは結果の翌日（11/4）。</td></tr>
+        <tr><td class="d">B　半導体株の急落は<br>「上院も取った」想定外の分</td><td data-my="B">—</td><td><span class="stamp" style="font-size:.9em">✕ 外れ</span></td><td>上院奪取は事前に76%。勝敗の驚きが原因なら事前に36ポイント下げていたはずだが、その下げは見つからない。</td></tr>
+        <tr><td class="d">C　CEOの件は<br>前から織り込まれていた</td><td data-my="C">—</td><td><span class="stamp" style="font-size:.9em">✕ 外れ</span></td><td>報道の前後で固有分は動かず、反応は11/9の1日だけ。PERの低下は2025年から続く別の流れ。</td></tr>
+      </tbody>
+    </table>
+    <div class="box ab"><span class="tag a">一方で、確かめられたこと</span><p>11/5は「市場全体と半導体」の下げ、11/9は「エヌビディアだけ」の下げでした。同じ週の下落でも、層に分けると別々の出来事だと分かります。</p></div>
+  </div>
+</section>
+
+<!-- 20 解釈 -->
+<section class="slide" data-chap="解釈" data-days="1105">
+  <h1>驚きは「勝敗」ではなく、<em>「勝利の意味」</em>だった</h1>
+  <p class="lead">データをつなぐと、いちばん素直な読み方はこうなります。ただし、ここからは事実ではなく解釈です。</p>
+  <div class="body col">
+    <div class="three">
+      <div class="row"><div class="no">1</div><div class="tx">選挙の前、市場は「民主党の勝利」と「AI投資の抑制」を結びつけていなかった<small>予測市場の確率は36%から76%まで上がったのに、半導体株はそれに反応していませんでした。</small></div></div>
+      <div class="row"><div class="no">2</div><div class="tx">結果が出てから、勝利の「中身」が読み直された<small>報道は、AIに批判的な候補の大勝と、データセンター建設への規制懸念を挙げています。11/4に払い手と受け手で明暗が分かれ、11/5に全体へ広がりました。</small></div></div>
+      <div class="row"><div class="no">3</div><div class="tx">11/5の下げは、いくつもの理由が重なっていた<small>半導体大手の弱い業績見通し、AI株に偏った持ち高の解消、値動きの急拡大に伴う機械的な売り。翌2営業日で、半導体は下げの半分強を取り戻しました。</small></div></div>
+    </div>
+    <div class="box term"><h3>受講生へのメッセージ</h3><p>「みんなが知っていること」と「株価に入っていること」は同じではありません。知られていても、意味が結びついていなければ、株価には入っていないことがあります。</p></div>
+  </div>
+</section>
+
+<!-- 21 限界 -->
+<section class="slide" data-chap="解釈">
+  <h1>このデータで<em>言えないこと</em></h1>
+  <p class="lead">検証は、言えることと言えないことを分けて終わります。ここを省くと、新しい思い込みを作るだけになります。</p>
+  <div class="body col">
+    <div class="cards c2" style="flex:1">
+      <div class="card"><div class="k">限界 1</div><h3>11/5の「引き金」は特定できていない</h3><p>特定の発言や法案は見つかりませんでした。複数の理由が重なった、というところまでしか言えません。</p></div>
+      <div class="card"><div class="k">限界 2</div><h3>「連動なし」は強い証明ではない</h3><p>確率は予測市場1社の値で、比べたのは43週分です。「織り込みの証拠が見つからなかった」が正確な言い方です。</p></div>
+      <div class="card"><div class="k">限界 3</div><h3>情報が事前に伝わっていたかは、株価では分からない</h3><p>言えるのは「報道の前に、異常な値動きはなかった」までです。誰が何を知っていたかは、株価からは証明できません。</p></div>
+      <div class="card"><div class="k">限界 4</div><h3>過去の予想PERは近似値</h3><p>当時のアナリスト予想そのものではありません。ただし実績ベースのPERでも、同じ低下の流れが出ています。</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 22 持ち帰り -->
+<section class="slide" data-chap="まとめ">
+  <h1>持ち帰る<em>3つの道具</em>と、次回への宿題</h1>
+  <div class="body">
+    <div style="flex:1.25;min-width:0;display:flex;flex-direction:column;justify-content:center">
+      <div class="three">
+        <div class="row"><div class="no">①</div><div class="tx">予想を数字で測る<small>「織り込み済み」と言う前に、確率と株価を並べて、本当に連動していたかを見ます。</small></div></div>
+        <div class="row"><div class="no">②</div><div class="tx">逆算して確かめる<small>確率から「事前に下げてあったはずの分」を逆算します。それが実際の株価に見つからなければ、説明のほうを疑います。</small></div></div>
+        <div class="row"><div class="no">③</div><div class="tx">層に分ける<small>下がったのは市場か、業種か、その会社か。指数どうしの引き算で切り分けられます。PERを株価と利益予想に分けるのも、同じ考え方です。</small></div></div>
+      </div>
+    </div>
+    <div class="side">
+      <div class="box qb"><span class="tag q">封印予測　11月17日のエヌビディア決算</span>
+        <p>決算のあと、利益予想はどうなるでしょうか。</p>
+        <div class="pick" data-h="eps"><button>上がる</button><button>変わらない</button><button>下がる</button></div>
+        <p style="margin-top:.7em">予想PER（いま14.7倍）はどうなるでしょうか。</p>
+        <div class="pick" data-h="per"><button>上がる</button><button>変わらない</button><button>下がる</button></div>
+      </div>
+      <div class="box"><p>予想は画面に残ります。次回の講座で、今日の道具を使って答え合わせをします。</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 23 出典 -->
+<section class="slide" data-chap="参考">
+  <h1>データと出典</h1>
+  <div class="body col txt" style="justify-content:center">
+    <div class="cards c2">
+      <div class="box"><h3>株価・指数</h3><p>Yahoo Finance（S&amp;P500、ナスダック総合、SOX、均等加重S&amp;P500のETF、各個別株）。2026年11月9日終値まで。</p></div>
+      <div class="box"><h3>予測市場</h3><p>Polymarket「2026年中間選挙後の上院支配」「共和党の上院議席数」の日次価格。</p></div>
+      <div class="box"><h3>利益予想</h3><p>Yahoo Financeの決算履歴（各決算のEPS予想と実績）と現在のアナリスト予想。予想PERは講師による近似計算。</p></div>
+      <div class="box"><h3>報道</h3><p>選挙結果と市場の反応：CNBC、CNN、NBC、Yahoo Finance（11/4〜11/6）。エヌビディアCEOに関する報道と調査：The Hill、NBC、Al Jazeera（11/9）。初報は10/29のニューヨーク・タイムズ。</p></div>
+    </div>
+    <p style="margin-top:1em">この資料は投資判断の練習のための教材です。特定の銘柄の売買をすすめるものではありません。</p>
+  </div>
+</section>
+
+</div>
+<div class="nav"><button id="prev">← 戻る</button><span id="pg"></span><button id="rvb" class="rvb" hidden>答えを見る</button><button id="next">進む →</button></div>
+<div id="tip"></div>
+<div class="rot">スマホを横向きにすると、大きく読めます</div>
+
+<script>
+const V = {"oct":{"d":["2026-09-30","2026-10-01","2026-10-02","2026-10-05","2026-10-06","2026-10-07","2026-10-08","2026-10-09","2026-10-12","2026-10-13","2026-10-14","2026-10-15","2026-10-16","2026-10-19","2026-10-20","2026-10-21","2026-10-22","2026-10-23","2026-10-26","2026-10-27","2026-10-28","2026-10-29","2026-10-30","2026-11-02","2026-11-03","2026-11-04","2026-11-05","2026-11-06","2026-11-09"],"NVDA":[100.0,101.09,102.44,104.61,104.76,103.98,100.92,100.39,99.1,100.06,96.9,95.12,93.76,95.06,94.79,97.19,92.92,92.37,94.58,95.43,94.31,93.55,89.61,88.48,90.5,87.63,79.52,81.72,78.23],"SPX":[100.0,100.19,100.93,101.6,102.19,101.96,101.49,102.09,102.03,102.01,100.88,101.21,100.1,100.51,100.8,101.38,100.16,99.64,100.33,100.93,101.21,100.9,99.07,98.56,98.92,100.48,96.11,96.41,98.67],"IXIC":[100.0,100.04,101.23,102.29,102.75,102.52,101.24,101.88,101.43,101.28,99.37,99.45,97.32,98.4,98.38,99.41,96.83,96.63,97.42,98.57,98.84,97.48,94.7,93.68,94.46,95.81,90.52,91.51,94.01],"SOX":[100.0,101.59,104.02,104.31,104.67,103.46,99.96,99.55,96.9,96.68,92.52,91.71,88.19,89.61,89.35,91.11,84.98,85.36,87.76,90.92,92.52,91.21,84.64,81.79,83.94,81.31,71.35,74.36,79.45],"RSP":[100.0,100.47,100.82,101.49,102.07,101.24,101.85,102.41,102.49,102.54,101.96,103.36,102.92,102.59,103.77,104.14,104.9,104.1,104.46,104.57,104.52,105.78,104.95,105.75,105.4,107.36,104.25,103.86,106.22]},"ytd":{"d":["2025-12-31","2026-01-02","2026-01-05","2026-01-06","2026-01-07","2026-01-08","2026-01-09","2026-01-12","2026-01-13","2026-01-14","2026-01-15","2026-01-16","2026-01-20","2026-01-21","2026-01-22","2026-01-23","2026-01-26","2026-01-27","2026-01-28","2026-01-29","2026-01-30","2026-02-02","2026-02-03","2026-02-04","2026-02-05","2026-02-06","2026-02-09","2026-02-10","2026-02-11","2026-02-12","2026-02-13","2026-02-17","2026-02-18","2026-02-19","2026-02-20","2026-02-23","2026-02-24","2026-02-25","2026-02-26","2026-02-27","2026-03-02","2026-03-03","2026-03-04","2026-03-05","2026-03-06","2026-03-09","2026-03-10","2026-03-11","2026-03-12","2026-03-13","2026-03-16","2026-03-17","2026-03-18","2026-03-19","2026-03-20","2026-03-23","2026-03-24","2026-03-25","2026-03-26","2026-03-27","2026-03-30","2026-03-31","2026-04-01","2026-04-02","2026-04-06","2026-04-07","2026-04-08","2026-04-09","2026-04-10","2026-04-13","2026-04-14","2026-04-15","2026-04-16","2026-04-17","2026-04-20","2026-04-21","2026-04-22","2026-04-23","2026-04-24","2026-04-27","2026-04-28","2026-04-29","2026-04-30","2026-05-01","2026-05-04","2026-05-05","2026-05-06","2026-05-07","2026-05-08","2026-05-11","2026-05-12","2026-05-13","2026-05-14","2026-05-15","2026-05-18","2026-05-19","2026-05-20","2026-05-21","2026-05-22","2026-05-26","2026-05-27","2026-05-28","2026-05-29","2026-06-01","2026-06-02","2026-06-03","2026-06-04","2026-06-05","2026-06-08","2026-06-09","2026-06-10","2026-06-11","2026-06-12","2026-06-15","2026-06-16","2026-06-17","2026-06-18","2026-06-22","2026-06-23","2026-06-24","2026-06-25","2026-06-26","2026-06-29","2026-06-30","2026-07-01","2026-07-02","2026-07-06","2026-07-07","2026-07-08","2026-07-09","2026-07-10","2026-07-13","2026-07-14","2026-07-15","2026-07-16","2026-07-17","2026-07-20","2026-07-21","2026-07-22","2026-07-23","2026-07-24","2026-07-27","2026-07-28","2026-07-29","2026-07-30","2026-07-31","2026-08-03","2026-08-04","2026-08-05","2026-08-06","2026-08-07","2026-08-10","2026-08-11","2026-08-12","2026-08-13","2026-08-14","2026-08-17","2026-08-18","2026-08-19","2026-08-20","2026-08-21","2026-08-24","2026-08-25","2026-08-26","2026-08-27","2026-08-28","2026-08-31","2026-09-01","2026-09-02","2026-09-03","2026-09-04","2026-09-08","2026-09-09","2026-09-10","2026-09-11","2026-09-14","2026-09-15","2026-09-16","2026-09-17","2026-09-18","2026-09-21","2026-09-22","2026-09-23","2026-09-24","2026-09-25","2026-09-28","2026-09-29","2026-09-30","2026-10-01","2026-10-02","2026-10-05","2026-10-06","2026-10-07","2026-10-08","2026-10-09","2026-10-12","2026-10-13","2026-10-14","2026-10-15","2026-10-16","2026-10-19","2026-10-20","2026-10-21","2026-10-22","2026-10-23","2026-10-26","2026-10-27","2026-10-28","2026-10-29","2026-10-30","2026-11-02","2026-11-03","2026-11-04","2026-11-05","2026-11-06","2026-11-09"],"NVDA":[100.0,101.3,100.9,100.4,101.4,99.2,99.1,99.2,99.6,98.2,100.3,99.9,95.5,98.3,99.1,100.6,100.0,101.1,102.7,103.2,102.5,99.5,96.7,93.4,92.2,99.4,101.9,101.1,101.9,100.2,98.0,99.2,100.8,100.8,101.8,102.7,103.4,104.9,99.1,95.0,97.8,96.5,98.1,98.3,95.3,97.9,99.1,99.8,98.2,96.7,98.2,97.6,96.7,95.7,92.6,94.2,93.9,95.8,91.8,89.8,88.6,93.5,94.2,95.1,95.3,95.5,97.6,98.6,101.1,101.5,105.4,106.6,106.4,108.1,108.3,107.2,108.6,107.1,111.7,116.2,114.3,112.2,107.0,106.4,106.4,105.4,111.4,113.4,115.4,117.7,118.4,121.1,126.4,120.8,119.2,118.3,119.8,117.7,115.5,115.2,114.0,114.9,113.2,120.3,119.5,115.2,117.4,110.1,112.0,111.8,107.6,110.0,110.2,114.1,111.3,109.9,113.1,112.0,107.4,106.8,105.1,103.4,104.7,107.4,106.1,104.6,105.0,105.7,109.6,108.9,113.3,109.3,113.7,114.1,111.3,108.9,109.1,111.3,113.8,112.1,111.0,105.5,105.8,102.0,104.7,107.8,110.9,113.8,117.7,117.6,120.2,116.8,116.8,120.3,121.0,120.9,120.8,118.0,116.8,116.4,115.3,111.9,114.4,112.6,122.4,116.8,118.5,116.7,120.5,122.6,123.7,121.2,120.1,117.4,117.3,113.4,114.0,115.0,117.9,119.5,122.2,123.0,121.2,120.7,121.0,123.0,122.1,122.7,124.1,125.7,128.4,128.6,127.6,123.9,123.2,121.6,122.8,118.9,116.7,115.1,116.7,116.3,119.3,114.1,113.4,116.1,117.1,115.8,114.8,110.0,108.6,111.1,107.6,97.6,100.3,96.0],"SOX":[100.0,104.0,105.1,108.0,106.9,105.0,107.8,108.4,109.4,108.7,110.6,111.9,110.0,113.5,113.7,112.4,111.9,114.6,117.3,117.5,112.9,114.8,112.5,107.6,107.5,113.6,115.2,114.5,117.1,114.1,114.9,114.9,116.0,115.4,116.6,116.0,117.6,119.5,115.7,114.3,114.9,109.6,111.7,110.4,106.1,110.3,111.0,111.7,107.9,108.0,110.1,110.6,110.1,111.0,108.3,109.7,111.1,112.5,107.1,105.3,100.8,107.1,110.2,110.6,111.8,113.0,120.2,122.7,125.5,127.6,130.2,130.4,131.7,134.9,135.5,136.2,139.9,142.3,148.4,146.9,141.7,145.0,148.3,149.6,148.7,155.0,162.0,157.6,166.2,170.6,165.4,169.7,170.5,163.6,159.6,159.6,166.8,168.9,172.3,181.8,179.3,181.1,181.1,183.0,193.8,196.5,192.3,172.5,182.2,178.7,172.3,186.0,188.8,199.1,187.7,190.3,202.5,206.6,190.3,190.0,196.8,186.4,193.6,201.1,188.5,178.3,182.1,173.7,177.5,183.0,183.1,174.3,178.8,175.0,167.5,164.8,165.8,174.4,175.2,174.3,166.9,163.1,155.8,147.5,159.6,159.7,161.4,171.9,169.5,170.1,174.5,169.3,170.8,175.1,175.9,175.3,178.2,169.3,165.7,166.6,165.8,161.3,163.6,163.9,167.8,161.9,162.9,159.4,160.1,160.3,165.7,167.8,168.4,164.0,166.9,157.2,157.8,158.8,163.8,168.3,175.5,179.2,177.0,176.4,178.9,176.0,178.3,178.3,181.1,185.5,186.0,186.6,184.5,178.2,177.5,172.8,172.4,165.0,163.5,157.2,159.8,159.3,162.4,151.5,152.2,156.5,162.1,165.0,162.6,150.9,145.8,149.7,145.0,127.2,132.6,141.7],"SPX":[100.0,100.2,100.8,101.5,101.1,101.1,101.8,101.9,101.7,101.2,101.4,101.4,99.3,100.4,101.0,101.0,101.5,101.9,101.9,101.8,101.4,101.9,101.1,100.5,99.3,101.3,101.7,101.4,101.4,99.8,99.9,100.0,100.5,100.2,100.9,99.9,100.7,101.5,100.9,100.5,100.5,99.6,100.4,99.8,98.5,99.3,99.1,99.0,97.5,96.9,97.9,98.1,96.8,96.5,95.0,96.1,95.8,96.3,94.6,93.0,92.7,95.4,96.1,96.2,96.6,96.7,99.1,99.7,99.6,100.6,101.8,102.6,102.9,104.1,103.9,103.2,104.3,103.8,104.7,104.8,104.3,104.2,105.3,105.6,105.2,106.0,107.6,107.2,108.1,108.3,108.1,108.7,109.6,108.2,108.1,107.4,108.6,108.8,109.2,109.8,109.9,110.5,110.7,111.0,111.2,110.3,110.8,107.9,108.2,107.9,106.2,108.0,108.6,110.4,109.7,108.4,109.6,109.2,107.6,107.5,107.5,107.4,108.7,109.6,109.3,109.3,110.1,109.6,109.3,110.2,110.7,109.8,110.2,110.6,110.1,108.9,108.7,109.7,109.5,108.2,108.3,108.3,108.5,106.9,108.6,109.4,111.0,113.0,112.8,112.6,113.3,113.3,112.9,113.2,113.9,113.7,113.1,112.4,112.6,111.6,112.1,111.8,112.2,112.1,112.9,112.7,112.3,111.5,112.0,113.2,112.8,112.1,111.6,110.9,111.9,111.3,110.8,110.3,111.6,111.8,113.4,113.4,112.6,112.5,113.1,112.2,112.1,111.8,112.0,112.8,113.6,114.2,114.0,113.4,114.1,114.0,114.0,112.8,113.1,111.9,112.3,112.7,113.3,111.9,111.4,112.1,112.8,113.1,112.8,110.7,110.2,110.6,112.3,107.4,107.8,110.3]},"layers":{"d":["2026-10-01","2026-10-02","2026-10-05","2026-10-06","2026-10-07","2026-10-08","2026-10-09","2026-10-12","2026-10-13","2026-10-14","2026-10-15","2026-10-16","2026-10-19","2026-10-20","2026-10-21","2026-10-22","2026-10-23","2026-10-26","2026-10-27","2026-10-28","2026-10-29","2026-10-30","2026-11-02","2026-11-03","2026-11-04","2026-11-05","2026-11-06","2026-11-09"],"mkt":[0.19,0.93,1.59,2.16,1.94,1.48,2.07,2.01,1.99,0.88,1.2,0.1,0.51,0.79,1.37,0.16,-0.36,0.33,0.92,1.2,0.9,-0.94,-1.45,-1.09,0.48,-3.97,-3.66,-1.34],"tech":[-0.16,0.29,0.68,0.55,0.55,-0.25,-0.21,-0.59,-0.72,-1.51,-1.75,-2.82,-2.13,-2.43,-1.96,-3.38,-3.07,-2.94,-2.36,-2.37,-3.45,-4.51,-5.08,-4.62,-4.76,-5.99,-5.22,-4.84],"semi":[1.54,2.72,1.95,1.85,0.91,-1.27,-2.31,-4.57,-4.65,-7.14,-8.11,-9.85,-9.36,-9.62,-8.72,-13.05,-12.4,-10.44,-8.08,-6.61,-6.65,-11.23,-13.58,-11.8,-16.41,-23.79,-20.75,-16.83],"own":[-0.49,-1.53,0.29,0.09,0.5,0.95,0.84,2.25,3.44,4.62,3.65,6.12,5.9,5.9,6.47,8.93,7.9,7.48,4.84,1.91,2.54,5.7,7.86,7.53,7.48,10.83,9.45,-1.55],"day":{"mkt":[0.19,0.73,0.66,0.58,-0.22,-0.47,0.59,-0.06,-0.02,-1.11,0.32,-1.1,0.41,0.28,0.58,-1.22,-0.52,0.69,0.6,0.28,-0.31,-1.83,-0.51,0.36,1.57,-4.45,0.31,2.32],"tech":[-0.16,0.45,0.39,-0.13,-0.0,-0.79,0.04,-0.39,-0.13,-0.78,-0.25,-1.07,0.7,-0.31,0.47,-1.42,0.31,0.13,0.58,-0.0,-1.08,-1.06,-0.57,0.46,-0.14,-1.23,0.77,0.38],"semi":[1.54,1.19,-0.77,-0.1,-0.93,-2.18,-1.04,-2.27,-0.08,-2.49,-0.96,-1.74,0.49,-0.26,0.9,-4.33,0.65,1.96,2.37,1.47,-0.04,-4.58,-2.35,1.78,-4.61,-7.38,3.04,3.93],"own":[-0.49,-1.04,1.82,-0.2,0.41,0.46,-0.11,1.41,1.2,1.18,-0.97,2.47,-0.22,0.0,0.56,2.46,-1.03,-0.42,-2.64,-2.92,0.63,3.16,2.16,-0.33,-0.05,3.35,-1.38,-10.99]},"z":{"mkt":[0.24,0.9,0.82,0.71,-0.27,-0.58,0.73,-0.07,-0.03,-1.38,0.4,-1.36,0.5,0.35,0.71,-1.5,-0.64,0.86,0.73,0.34,-0.38,-2.26,-0.63,0.45,1.94,-5.49,0.39,2.86],"tech":[-0.33,0.96,0.82,-0.28,-0.0,-1.69,0.09,-0.82,-0.28,-1.67,-0.53,-2.28,1.49,-0.65,1.0,-3.02,0.67,0.27,1.23,-0.01,-2.3,-2.27,-1.21,0.98,-0.3,-2.62,1.64,0.82],"semi":[0.7,0.54,-0.35,-0.05,-0.42,-0.99,-0.47,-1.03,-0.03,-1.13,-0.44,-0.79,0.22,-0.12,0.41,-1.97,0.29,0.89,1.08,0.67,-0.02,-2.08,-1.07,0.81,-2.1,-3.36,1.38,1.79],"own":[-0.21,-0.44,0.76,-0.08,0.17,0.19,-0.05,0.59,0.5,0.49,-0.41,1.04,-0.09,0.0,0.24,1.03,-0.43,-0.18,-1.11,-1.22,0.26,1.32,0.91,-0.14,-0.02,1.4,-0.58,-4.61]},"sd":{"mkt":0.81,"tech":0.47,"semi":2.2,"own":2.38}},"ownYtd":{"d":["2026-01-02","2026-01-05","2026-01-06","2026-01-07","2026-01-08","2026-01-09","2026-01-12","2026-01-13","2026-01-14","2026-01-15","2026-01-16","2026-01-20","2026-01-21","2026-01-22","2026-01-23","2026-01-26","2026-01-27","2026-01-28","2026-01-29","2026-01-30","2026-02-02","2026-02-03","2026-02-04","2026-02-05","2026-02-06","2026-02-09","2026-02-10","2026-02-11","2026-02-12","2026-02-13","2026-02-17","2026-02-18","2026-02-19","2026-02-20","2026-02-23","2026-02-24","2026-02-25","2026-02-26","2026-02-27","2026-03-02","2026-03-03","2026-03-04","2026-03-05","2026-03-06","2026-03-09","2026-03-10","2026-03-11","2026-03-12","2026-03-13","2026-03-16","2026-03-17","2026-03-18","2026-03-19","2026-03-20","2026-03-23","2026-03-24","2026-03-25","2026-03-26","2026-03-27","2026-03-30","2026-03-31","2026-04-01","2026-04-02","2026-04-06","2026-04-07","2026-04-08","2026-04-09","2026-04-10","2026-04-13","2026-04-14","2026-04-15","2026-04-16","2026-04-17","2026-04-20","2026-04-21","2026-04-22","2026-04-23","2026-04-24","2026-04-27","2026-04-28","2026-04-29","2026-04-30","2026-05-01","2026-05-04","2026-05-05","2026-05-06","2026-05-07","2026-05-08","2026-05-11","2026-05-12","2026-05-13","2026-05-14","2026-05-15","2026-05-18","2026-05-19","2026-05-20","2026-05-21","2026-05-22","2026-05-26","2026-05-27","2026-05-28","2026-05-29","2026-06-01","2026-06-02","2026-06-03","2026-06-04","2026-06-05","2026-06-08","2026-06-09","2026-06-10","2026-06-11","2026-06-12","2026-06-15","2026-06-16","2026-06-17","2026-06-18","2026-06-22","2026-06-23","2026-06-24","2026-06-25","2026-06-26","2026-06-29","2026-06-30","2026-07-01","2026-07-02","2026-07-06","2026-07-07","2026-07-08","2026-07-09","2026-07-10","2026-07-13","2026-07-14","2026-07-15","2026-07-16","2026-07-17","2026-07-20","2026-07-21","2026-07-22","2026-07-23","2026-07-24","2026-07-27","2026-07-28","2026-07-29","2026-07-30","2026-07-31","2026-08-03","2026-08-04","2026-08-05","2026-08-06","2026-08-07","2026-08-10","2026-08-11","2026-08-12","2026-08-13","2026-08-14","2026-08-17","2026-08-18","2026-08-19","2026-08-20","2026-08-21","2026-08-24","2026-08-25","2026-08-26","2026-08-27","2026-08-28","2026-08-31","2026-09-01","2026-09-02","2026-09-03","2026-09-04","2026-09-08","2026-09-09","2026-09-10","2026-09-11","2026-09-14","2026-09-15","2026-09-16","2026-09-17","2026-09-18","2026-09-21","2026-09-22","2026-09-23","2026-09-24","2026-09-25","2026-09-28","2026-09-29","2026-09-30","2026-10-01","2026-10-02","2026-10-05","2026-10-06","2026-10-07","2026-10-08","2026-10-09","2026-10-12","2026-10-13","2026-10-14","2026-10-15","2026-10-16","2026-10-19","2026-10-20","2026-10-21","2026-10-22","2026-10-23","2026-10-26","2026-10-27","2026-10-28","2026-10-29","2026-10-30","2026-11-02","2026-11-03","2026-11-04","2026-11-05","2026-11-06","2026-11-09"],"v":[-2.7,-4.1,-7.3,-5.3,-5.6,-8.4,-8.9,-9.3,-10.2,-9.8,-11.4,-14.2,-14.4,-13.8,-11.0,-11.3,-12.5,-13.3,-12.9,-9.7,-14.3,-15.1,-14.1,-15.4,-13.4,-12.3,-12.4,-13.9,-13.0,-15.9,-14.7,-14.0,-13.6,-13.6,-12.1,-12.9,-13.1,-15.5,-18.5,-16.1,-12.7,-13.0,-11.6,-10.7,-11.9,-11.4,-11.3,-9.4,-11.1,-11.4,-12.6,-12.9,-14.8,-15.7,-15.3,-16.8,-16.0,-15.4,-15.9,-13.0,-13.6,-15.6,-15.1,-16.0,-16.8,-20.8,-21.8,-21.6,-22.9,-21.2,-20.1,-21.4,-22.1,-22.4,-24.0,-25.3,-28.5,-28.5,-23.5,-21.5,-25.6,-32.6,-34.1,-33.5,-38.6,-37.4,-32.9,-36.5,-37.1,-33.5,-33.7,-29.9,-30.3,-29.2,-30.0,-33.1,-36.1,-40.0,-45.6,-45.3,-45.5,-47.0,-42.0,-48.4,-53.4,-49.3,-44.9,-48.7,-46.9,-47.1,-52.5,-53.9,-55.7,-52.2,-54.9,-58.2,-61.2,-57.2,-57.6,-62.8,-59.0,-61.5,-62.7,-57.5,-53.3,-55.1,-49.6,-48.2,-51.9,-48.0,-46.7,-45.2,-42.8,-40.9,-41.5,-41.8,-45.0,-43.1,-44.1,-40.7,-43.6,-38.7,-36.9,-42.1,-39.3,-37.5,-41.3,-36.5,-36.9,-37.2,-37.1,-38.0,-37.5,-37.4,-37.2,-38.9,-36.1,-35.0,-35.8,-36.3,-36.5,-35.8,-37.6,-31.5,-32.7,-31.8,-31.1,-28.4,-26.8,-29.2,-32.6,-33.8,-33.4,-35.3,-32.6,-32.5,-32.3,-32.9,-34.3,-36.2,-37.6,-37.8,-37.9,-39.1,-35.8,-37.9,-37.3,-37.8,-38.9,-37.0,-37.2,-36.8,-36.4,-36.5,-35.1,-33.9,-32.7,-33.7,-31.2,-31.4,-31.4,-30.9,-28.4,-29.4,-29.9,-32.5,-35.4,-34.8,-31.6,-29.5,-29.8,-29.9,-26.5,-27.9,-38.9]},"elect":{"d":["2026-01-02","2026-01-05","2026-01-06","2026-01-07","2026-01-08","2026-01-09","2026-01-12","2026-01-13","2026-01-14","2026-01-15","2026-01-16","2026-01-20","2026-01-21","2026-01-22","2026-01-23","2026-01-26","2026-01-27","2026-01-28","2026-01-29","2026-01-30","2026-02-02","2026-02-03","2026-02-04","2026-02-05","2026-02-06","2026-02-09","2026-02-10","2026-02-11","2026-02-12","2026-02-13","2026-02-17","2026-02-18","2026-02-19","2026-02-20","2026-02-23","2026-02-24","2026-02-25","2026-02-26","2026-02-27","2026-03-02","2026-03-03","2026-03-04","2026-03-05","2026-03-06","2026-03-09","2026-03-10","2026-03-11","2026-03-12","2026-03-13","2026-03-16","2026-03-17","2026-03-18","2026-03-19","2026-03-20","2026-03-23","2026-03-24","2026-03-25","2026-03-26","2026-03-27","2026-03-30","2026-03-31","2026-04-01","2026-04-02","2026-04-06","2026-04-07","2026-04-08","2026-04-09","2026-04-10","2026-04-13","2026-04-14","2026-04-15","2026-04-16","2026-04-17","2026-04-20","2026-04-21","2026-04-22","2026-04-23","2026-04-24","2026-04-27","2026-04-28","2026-04-29","2026-04-30","2026-05-01","2026-05-04","2026-05-05","2026-05-06","2026-05-07","2026-05-08","2026-05-11","2026-05-12","2026-05-13","2026-05-14","2026-05-15","2026-05-18","2026-05-19","2026-05-20","2026-05-21","2026-05-22","2026-05-26","2026-05-27","2026-05-28","2026-05-29","2026-06-01","2026-06-02","2026-06-03","2026-06-04","2026-06-05","2026-06-08","2026-06-09","2026-06-10","2026-06-11","2026-06-12","2026-06-15","2026-06-16","2026-06-17","2026-06-18","2026-06-22","2026-06-23","2026-06-24","2026-06-25","2026-06-26","2026-06-29","2026-06-30","2026-07-01","2026-07-02","2026-07-06","2026-07-07","2026-07-08","2026-07-09","2026-07-10","2026-07-13","2026-07-14","2026-07-15","2026-07-16","2026-07-17","2026-07-20","2026-07-21","2026-07-22","2026-07-23","2026-07-24","2026-07-27","2026-07-28","2026-07-29","2026-07-30","2026-07-31","2026-08-03","2026-08-04","2026-08-05","2026-08-06","2026-08-07","2026-08-10","2026-08-11","2026-08-12","2026-08-13","2026-08-14","2026-08-17","2026-08-18","2026-08-19","2026-08-20","2026-08-21","2026-08-24","2026-08-25","2026-08-26","2026-08-27","2026-08-28","2026-08-31","2026-09-01","2026-09-02","2026-09-03","2026-09-04","2026-09-08","2026-09-09","2026-09-10","2026-09-11","2026-09-14","2026-09-15","2026-09-16","2026-09-17","2026-09-18","2026-09-21","2026-09-22","2026-09-23","2026-09-24","2026-09-25","2026-09-28","2026-09-29","2026-09-30","2026-10-01","2026-10-02","2026-10-05","2026-10-06","2026-10-07","2026-10-08","2026-10-09","2026-10-12","2026-10-13","2026-10-14","2026-10-15","2026-10-16","2026-10-19","2026-10-20","2026-10-21","2026-10-22","2026-10-23","2026-10-26","2026-10-27","2026-10-28","2026-10-29","2026-10-30","2026-11-02","2026-11-03","2026-11-04","2026-11-05","2026-11-06","2026-11-09"],"prob":[34.5,33.5,33.5,34.0,34.5,34.5,34.5,34.5,34.5,34.5,34.5,34.5,34.5,34.5,34.5,35.5,35.5,35.5,35.5,35.5,35.5,35.5,35.5,35.5,35.5,37.5,37.0,37.5,37.5,37.5,40.0,40.5,40.5,40.5,40.5,40.5,40.5,40.5,40.5,41.0,41.5,42.5,42.5,42.5,45.5,46.5,46.5,46.5,46.5,50.5,50.5,50.5,49.5,49.5,46.5,47.5,47.5,47.5,47.5,49.5,49.5,49.5,49.5,52.0,52.0,52.0,52.5,52.5,53.5,53.5,53.5,53.5,53.5,53.5,53.5,51.5,52.5,52.5,51.5,51.5,50.5,51.5,51.5,50.5,50.5,49.5,47.5,48.5,46.5,46.5,46.5,46.5,46.5,46.5,47.5,47.5,48.5,48.5,47.5,48.5,48.5,47.5,46.5,47.5,46.5,46.5,45.5,45.5,45.5,45.5,45.5,44.5,44.5,43.5,42.5,42.5,43.0,42.5,43.5,42.5,42.5,42.5,41.5,41.5,41.5,44.5,45.5,45.5,46.5,46.5,45.5,45.5,45.5,45.5,45.5,43.5,43.5,43.5,43.5,43.5,43.5,43.5,43.5,43.5,43.5,44.5,44.5,44.5,44.5,45.5,45.5,46.5,50.5,52.5,52.5,52.5,50.5,51.5,50.5,50.5,49.5,49.5,49.5,50.5,50.5,50.5,50.5,50.5,51.5,51.5,51.5,52.5,52.5,52.5,52.5,53.5,58.5,58.5,59.5,60.5,63.5,65.5,66.5,62.5,62.5,62.5,62.5,62.5,62.5,67.5,65.5,64.5,64.5,62.5,63.5,63.5,63.5,63.5,64.5,64.5,63.5,63.5,63.5,68.5,67.5,65.5,67.5,67.5,68.5,71.5,75.5,100.0,100.0,100.0,100.0],"semi":[4.0,4.3,6.4,5.3,3.8,5.7,5.9,7.0,7.4,8.9,10.1,10.8,12.8,12.0,10.5,9.7,11.2,13.3,14.2,11.2,12.3,11.7,8.8,10.3,13.7,14.2,14.1,16.5,16.0,16.9,16.8,16.9,16.8,16.9,17.5,17.9,18.2,16.2,15.9,16.0,12.4,13.0,12.1,9.7,12.2,12.8,13.4,11.7,12.7,13.4,13.4,14.4,15.5,15.1,15.0,17.1,17.6,15.1,15.5,12.0,14.3,15.9,16.1,16.6,17.6,21.0,22.3,24.2,24.6,24.7,23.3,23.9,24.8,25.5,26.6,27.7,30.2,32.9,31.6,28.9,31.2,32.5,32.5,32.1,35.3,37.6,35.0,38.7,41.1,38.8,40.1,39.7,37.2,35.2,36.0,38.9,40.1,41.9,46.1,44.6,44.7,44.5,45.2,50.8,53.1,51.0,44.5,49.1,48.1,46.5,51.6,52.8,55.0,50.3,53.0,57.4,60.7,54.8,55.0,59.0,53.8,55.5,57.9,52.0,47.2,48.3,44.7,46.7,48.4,48.2,44.9,46.5,43.7,40.9,40.6,41.3,45.1,46.1,47.7,44.0,41.9,37.5,33.8,39.0,38.0,37.0,40.8,40.2,40.6,41.8,39.2,40.6,42.5,42.2,42.2,44.1,40.3,38.0,39.6,38.6,36.7,37.4,37.7,38.5,35.4,36.1,35.0,35.0,33.7,37.3,39.0,40.0,37.9,38.8,33.3,34.5,35.1,36.5,38.9,40.8,42.4,42.3,42.0,42.9,42.2,43.6,43.4,44.9,46.1,45.3,45.2,44.3,42.1,41.0,38.8,38.7,36.2,35.2,33.5,34.0,33.7,34.6,30.3,31.0,32.9,35.3,36.7,36.7,32.1,29.8,31.5,26.9,19.6,22.6,26.5]},"nov4":{"2026-11-04":{"pay":4.4,"sox":-3.1,"spx":1.6},"2026-11-05":{"pay":-3.0,"sox":-12.2,"spx":-4.4}},"semi45":-11.2,"days":{"2026-10-29":{"SPX":-0.3,"IXIC":-1.4,"SOX":-1.4,"NVDA":-0.8},"2026-11-03":{"SPX":0.4,"IXIC":0.8,"SOX":2.6,"NVDA":2.3},"2026-11-04":{"SPX":1.6,"IXIC":1.4,"SOX":-3.1,"NVDA":-3.2},"2026-11-05":{"SPX":-4.4,"IXIC":-5.5,"SOX":-12.2,"NVDA":-9.3},"2026-11-06":{"SPX":0.3,"IXIC":1.1,"SOX":4.2,"NVDA":2.8},"2026-11-09":{"SPX":2.3,"IXIC":2.7,"SOX":6.9,"NVDA":-4.3}},"n225_1106":-6.0,"octRet":{"NVDA":-21.8,"SPX":-1.3,"IXIC":-6.0,"SOX":-20.5,"RSP":6.2},"ytdRet":{"NVDA":-4.0,"SPX":10.3,"IXIC":8.7,"SOX":41.7,"RSP":16.7},"semi45parts":[-4.5,-6.7],"per":{"d":["2024-01-05","2024-01-12","2024-01-19","2024-01-26","2024-02-02","2024-02-09","2024-02-16","2024-02-23","2024-03-01","2024-03-08","2024-03-15","2024-03-22","2024-03-29","2024-04-05","2024-04-12","2024-04-19","2024-04-26","2024-05-03","2024-05-10","2024-05-17","2024-05-24","2024-05-31","2024-06-07","2024-06-14","2024-06-21","2024-06-28","2024-07-05","2024-07-12","2024-07-19","2024-07-26","2024-08-02","2024-08-09","2024-08-16","2024-08-23","2024-08-30","2024-09-06","2024-09-13","2024-09-20","2024-09-27","2024-10-04","2024-10-11","2024-10-18","2024-10-25","2024-11-01","2024-11-08","2024-11-15","2024-11-22","2024-11-29","2024-12-06","2024-12-13","2024-12-20","2024-12-27","2025-01-03","2025-01-10","2025-01-17","2025-01-24","2025-01-31","2025-02-07","2025-02-14","2025-02-21","2025-02-28","2025-03-07","2025-03-14","2025-03-21","2025-03-28","2025-04-04","2025-04-11","2025-04-18","2025-04-25","2025-05-02","2025-05-09","2025-05-16","2025-05-23","2025-05-30","2025-06-06","2025-06-13","2025-06-20","2025-06-27","2025-07-04","2025-07-11","2025-07-18","2025-07-25","2025-08-01","2025-08-08","2025-08-15","2025-08-22","2025-08-29","2025-09-05","2025-09-12","2025-09-19","2025-09-26","2025-10-03","2025-10-10","2025-10-17","2025-10-24","2025-10-31","2025-11-07","2025-11-14","2025-11-21","2025-11-28","2025-12-05","2025-12-12","2025-12-19","2025-12-26","2026-01-02","2026-01-09","2026-01-16","2026-01-23","2026-01-30","2026-02-06","2026-02-13","2026-02-20","2026-02-27","2026-03-06","2026-03-13","2026-03-20","2026-03-27","2026-04-03","2026-04-10","2026-04-17","2026-04-24","2026-05-01","2026-05-08","2026-05-15","2026-05-22","2026-05-29","2026-06-05","2026-06-12","2026-06-19","2026-06-26","2026-07-03","2026-07-10","2026-07-17","2026-07-24","2026-07-31","2026-08-07","2026-08-14","2026-08-21","2026-08-28","2026-09-04","2026-09-11","2026-09-18","2026-09-25","2026-10-02","2026-10-09","2026-10-16","2026-10-23","2026-10-30","2026-11-06","2026-11-09","2026-11-13"],"NVDA":[20.37,22.7,24.69,25.32,27.45,29.93,30.13,28.15,29.39,31.26,31.37,33.67,32.27,31.43,31.49,27.21,31.33,31.71,32.1,33.03,35.61,36.67,40.43,44.11,42.33,41.32,42.08,43.22,39.44,37.81,35.88,35.03,41.67,43.27,35.53,30.6,35.45,34.52,36.13,37.18,40.12,41.07,42.12,40.3,43.94,42.26,36.68,35.72,36.81,34.69,34.81,35.4,37.33,35.12,35.58,36.85,31.03,33.55,35.88,34.74,27.39,24.71,26.68,25.81,24.05,20.68,24.33,22.26,24.34,25.11,25.58,29.69,28.79,24.22,25.4,25.44,25.78,28.27,28.56,29.56,30.9,31.09,31.13,32.74,32.34,31.9,26.15,25.08,26.7,26.53,26.76,28.17,27.5,27.51,27.97,30.4,28.25,28.55,22.73,22.49,23.18,22.24,23.0,24.21,24.0,23.49,23.66,23.85,24.29,23.56,23.23,24.12,19.51,19.58,19.85,19.02,18.45,19.54,20.77,22.21,22.94,21.86,23.7,24.81,20.41,20.01,19.44,19.45,19.97,18.25,18.47,20.0,19.22,19.61,19.03,21.23,21.34,20.35,17.85,18.9,17.91,18.23,18.46,19.19,18.81,17.57,17.31,16.79,15.31,14.66,14.66],"AMD":[46.5,49.18,58.47,59.48,53.84,52.27,52.69,53.49,61.41,62.85,57.9,54.44,54.69,51.64,49.48,44.44,47.7,41.6,41.97,45.43,45.96,46.1,46.37,44.1,44.54,44.81,47.49,50.17,41.87,38.67,38.52,39.03,43.19,45.05,43.19,39.06,44.28,45.33,47.78,49.68,48.81,45.34,45.42,38.34,39.99,36.46,37.39,37.08,37.46,34.3,32.22,33.84,33.88,31.36,32.83,33.2,31.34,27.37,28.78,28.2,25.41,25.52,25.69,27.08,26.26,21.82,23.77,22.26,24.59,25.14,23.97,27.31,25.71,25.81,27.08,27.08,29.89,33.52,32.15,34.13,36.59,38.8,40.02,31.99,32.87,31.07,30.12,27.99,29.36,29.15,29.53,30.49,39.8,43.16,46.84,47.43,37.85,40.0,33.03,35.26,35.33,34.16,34.59,34.84,36.22,32.93,37.57,42.09,38.37,26.79,26.65,25.73,25.73,24.73,24.86,25.88,25.96,27.96,31.5,35.78,44.71,46.34,46.5,43.32,47.75,52.72,47.64,52.25,54.89,53.28,52.89,56.99,50.64,53.31,48.64,39.55,42.09,38.73,38.1,39.08,42.24,45.81,51.61,51.87,49.76,43.27,42.29,41.31,29.84,33.79,33.79],"AVGO":[22.23,23.47,25.66,25.53,25.94,27.19,26.39,27.47,29.64,25.22,23.81,26.08,25.54,25.81,25.9,23.21,25.9,24.63,25.68,26.88,27.13,25.6,27.1,30.55,29.2,28.27,29.99,29.94,27.7,26.7,25.32,26.1,29.18,29.29,28.67,22.35,27.36,27.91,28.17,28.82,29.61,29.35,28.22,27.56,29.96,26.89,26.79,26.44,29.29,34.01,33.4,36.57,35.18,33.93,35.92,37.02,33.48,34.02,35.26,33.08,30.17,27.38,27.46,26.92,23.75,20.55,25.55,24.02,27.01,28.6,29.24,32.11,32.12,34.0,31.06,31.28,31.45,33.88,34.61,34.51,35.64,36.5,36.31,38.36,38.53,36.98,37.41,35.14,37.76,36.2,35.1,35.51,34.06,36.66,37.16,38.79,36.67,35.93,35.7,42.28,40.95,31.3,29.6,30.62,30.23,30.0,30.58,27.83,28.81,28.95,28.28,28.93,27.79,24.34,23.72,22.87,22.14,23.16,27.36,29.94,31.13,31.02,31.66,31.31,30.5,32.9,24.43,24.2,26.05,23.12,22.83,25.33,23.49,24.19,24.65,27.09,24.89,23.33,23.36,20.25,20.49,20.24,19.97,20.1,20.46,18.6,18.2,18.45,16.62,18.08,18.08],"TSM":[16.88,17.16,16.92,17.37,17.15,19.72,18.77,19.19,19.84,21.68,20.29,20.82,20.16,20.94,21.11,17.07,18.49,18.93,19.95,20.28,21.39,20.19,21.98,23.06,23.26,23.24,24.6,25.05,19.81,19.35,17.9,19.97,20.85,20.46,20.51,18.74,20.61,20.8,21.26,21.64,22.8,21.8,22.09,20.95,21.85,20.2,20.64,20.05,22.04,21.82,21.41,21.89,22.65,22.62,21.21,22.25,20.99,20.67,20.45,19.88,18.11,17.76,17.46,17.73,16.57,14.72,15.76,15.22,14.68,15.94,15.69,17.26,17.06,17.18,18.24,18.76,18.62,20.32,20.87,20.48,18.74,19.14,18.33,18.85,18.62,18.16,17.99,18.97,20.21,20.64,21.31,22.77,21.88,20.05,20.04,20.41,19.46,19.35,18.69,19.8,20.02,19.84,19.63,20.57,21.71,21.99,20.26,19.81,19.56,20.64,21.68,21.93,22.16,20.05,20.02,19.48,19.33,20.06,21.93,19.75,21.45,21.2,21.94,21.55,21.56,22.31,22.13,22.6,24.63,23.05,23.14,23.14,19.43,19.68,19.72,20.49,20.8,20.44,20.37,20.92,21.13,21.2,21.98,23.06,22.11,18.71,18.98,18.42,17.03,17.62,17.62],"rel":[0.916,0.967,0.962,0.992,1.058,1.101,1.142,1.025,0.991,1.24,1.318,1.291,1.264,1.218,1.216,1.172,1.21,1.288,1.25,1.229,1.313,1.432,1.492,1.444,1.45,1.462,1.403,1.444,1.424,1.416,1.417,1.342,1.428,1.477,1.239,1.369,1.296,1.237,1.283,1.29,1.355,1.4,1.493,1.462,1.467,1.571,1.369,1.351,1.257,1.02,1.08,1.046,1.102,1.12,1.084,1.11,0.99,1.226,1.247,1.232,1.078,0.968,1.039,0.959,1.013,1.007,1.024,1.0,0.99,0.999,1.067,1.087,1.12,0.938,0.938,0.94,0.862,0.843,0.888,0.866,0.867,0.852,0.857,1.023,0.984,1.027,0.868,0.896,0.909,0.91,0.906,0.924,0.807,0.751,0.753,0.784,0.77,0.795,0.688,0.638,0.656,0.711,0.777,0.791,0.794,0.783,0.774,0.857,0.843,0.879,0.872,0.938,0.758,0.805,0.837,0.832,0.833,0.843,0.759,0.742,0.737,0.705,0.748,0.793,0.669,0.608,0.796,0.804,0.767,0.789,0.798,0.789,0.819,0.811,0.772,0.784,0.858,0.872,0.764,0.903,0.847,0.86,0.84,0.832,0.851,0.939,0.912,0.91,0.899,0.811,0.811],"relDaily":{"d":["2026-04-01","2026-04-02","2026-04-06","2026-04-07","2026-04-08","2026-04-09","2026-04-10","2026-04-13","2026-04-14","2026-04-15","2026-04-16","2026-04-17","2026-04-20","2026-04-21","2026-04-22","2026-04-23","2026-04-24","2026-04-27","2026-04-28","2026-04-29","2026-04-30","2026-05-01","2026-05-04","2026-05-05","2026-05-06","2026-05-07","2026-05-08","2026-05-11","2026-05-12","2026-05-13","2026-05-14","2026-05-15","2026-05-18","2026-05-19","2026-05-20","2026-05-21","2026-05-22","2026-05-26","2026-05-27","2026-05-28","2026-05-29","2026-06-01","2026-06-02","2026-06-03","2026-06-04","2026-06-05","2026-06-08","2026-06-09","2026-06-10","2026-06-11","2026-06-12","2026-06-15","2026-06-16","2026-06-17","2026-06-18","2026-06-22","2026-06-23","2026-06-24","2026-06-25","2026-06-26","2026-06-29","2026-06-30","2026-07-01","2026-07-02","2026-07-06","2026-07-07","2026-07-08","2026-07-09","2026-07-10","2026-07-13","2026-07-14","2026-07-15","2026-07-16","2026-07-17","2026-07-20","2026-07-21","2026-07-22","2026-07-23","2026-07-24","2026-07-27","2026-07-28","2026-07-29","2026-07-30","2026-07-31","2026-08-03","2026-08-04","2026-08-05","2026-08-06","2026-08-07","2026-08-10","2026-08-11","2026-08-12","2026-08-13","2026-08-14","2026-08-17","2026-08-18","2026-08-19","2026-08-20","2026-08-21","2026-08-24","2026-08-25","2026-08-26","2026-08-27","2026-08-28","2026-08-31","2026-09-01","2026-09-02","2026-09-03","2026-09-04","2026-09-08","2026-09-09","2026-09-10","2026-09-11","2026-09-14","2026-09-15","2026-09-16","2026-09-17","2026-09-18","2026-09-21","2026-09-22","2026-09-23","2026-09-24","2026-09-25","2026-09-28","2026-09-29","2026-09-30","2026-10-01","2026-10-02","2026-10-05","2026-10-06","2026-10-07","2026-10-08","2026-10-09","2026-10-12","2026-10-13","2026-10-14","2026-10-15","2026-10-16","2026-10-19","2026-10-20","2026-10-21","2026-10-22","2026-10-23","2026-10-26","2026-10-27","2026-10-28","2026-10-29","2026-10-30","2026-11-02","2026-11-03","2026-11-04","2026-11-05","2026-11-06","2026-11-09"],"v":[0.838,0.843,0.845,0.798,0.777,0.775,0.759,0.746,0.772,0.75,0.744,0.742,0.756,0.743,0.717,0.711,0.737,0.775,0.797,0.772,0.715,0.705,0.713,0.688,0.731,0.767,0.748,0.766,0.787,0.81,0.802,0.793,0.79,0.803,0.8,0.682,0.669,0.655,0.649,0.646,0.608,0.628,0.596,0.577,0.781,0.796,0.787,0.795,0.806,0.795,0.804,0.807,0.824,0.78,0.767,0.793,0.788,0.78,0.773,0.789,0.762,0.745,0.791,0.798,0.77,0.795,0.786,0.757,0.789,0.793,0.815,0.807,0.829,0.819,0.805,0.803,0.8,0.796,0.811,0.767,0.774,0.768,0.753,0.772,0.789,0.759,0.784,0.779,0.784,0.771,0.782,0.806,0.807,0.858,0.858,0.865,0.898,0.892,0.872,0.87,0.894,0.882,0.795,0.764,0.772,0.762,0.792,0.921,0.903,0.865,0.864,0.858,0.847,0.849,0.862,0.861,0.857,0.86,0.859,0.852,0.849,0.837,0.84,0.85,0.836,0.842,0.845,0.832,0.827,0.834,0.846,0.846,0.851,0.857,0.863,0.865,0.865,0.939,0.934,0.921,0.93,0.931,0.912,0.921,0.902,0.886,0.895,0.91,0.909,0.902,0.891,0.903,0.899,0.811]},"dec":[{"lab":"2025年","p0":35.7,"p1":23.7,"px":35.0,"eps":103.0},{"lab":"2026年 1〜6月","p0":24.0,"p1":19.0,"px":6.0,"eps":34.0},{"lab":"7/1 〜 10/28","p0":18.7,"p1":17.7,"px":9.0,"eps":16.0},{"lab":"10/28 〜 11/9","p0":17.7,"p1":14.7,"px":-17.0,"eps":0.0}]}};
+
+/* ---------- 共通 ---------- */
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const C={NVDA:'var(--s1)',SOX:'var(--s2)',IXIC:'var(--s3)',SPX:'var(--s4)',RSP:'var(--ctx)',prob:'var(--s7)',ctx:'var(--ctx)'};
+const sg=(v,d=1)=>(v>0?'+':v<0?'−':'')+Math.abs(v).toFixed(d);
+const F={pct:v=>sg(v)+'%',pt:v=>sg(v),x:v=>v.toFixed(1)+'倍'};
+const get=p=>p.split('.').reduce((o,k)=>o[k],V);
+$$('[data-v]').forEach(e=>e.textContent=F[e.dataset.f](get(e.dataset.v)));
+const md=d=>(+d.slice(5,7))+'/'+(+d.slice(8,10));
+const NS='http://www.w3.org/2000/svg';
+function el(p,t,a,txt){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;p.appendChild(e);return e}
+function ticks(lo,hi,n=5){const st0=(hi-lo)/n,m=Math.pow(10,Math.floor(Math.log10(st0))),r=st0/m,st=(r<1.5?1:r<3.5?2:r<7.5?5:10)*m;const a=[];for(let v=Math.ceil(lo/st)*st;v<=hi+1e-9;v+=st)a.push(+v.toFixed(6));return a}
+const tip=$('#tip');
+function showTip(ev,html){tip.innerHTML=html;tip.style.display='block';const w=tip.offsetWidth;let x=ev.clientX+14;if(x+w>innerWidth-8)x=ev.clientX-w-14;tip.style.left=x+'px';tip.style.top=(ev.clientY+12)+'px'}
+const hideTip=()=>tip.style.display='none';
+function legend(id,items){const e=$('#'+id);if(e)e.innerHTML=items.map(s=>`<span><i style="background:${s.c}"></i>${s.n}</span>`).join('')}
+
+/* ---------- 折れ線 ---------- */
+function line(id,o){
+  const svg=$('#'+id);svg._draw=()=>line(id,o);svg.removeAttribute('viewBox');svg.innerHTML='';const bb=svg.getBoundingClientRect();if(bb.width<10)return;
+  const W=1000,H=Math.round(1000*bb.height/bb.width),m={l:58,r:o.r??130,t:18,b:34};
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  const n=o.d.length,all=o.series.flatMap(s=>s.v).filter(v=>v!=null);
+  let lo=o.min??Math.min(...all),hi=o.max??Math.max(...all);const pad=(hi-lo)*.06;if(o.min==null)lo-=pad;if(o.max==null)hi+=pad;
+  const X=i=>m.l+(W-m.l-m.r)*i/(n-1),Y=v=>m.t+(H-m.t-m.b)*(1-(v-lo)/(hi-lo));
+  ticks(lo,hi,o.nt||5).forEach(v=>{el(svg,'line',{x1:m.l,x2:W-m.r,y1:Y(v),y2:Y(v),stroke:'var(--grid)','stroke-width':1});
+    el(svg,'text',{x:m.l-8,y:Y(v)+5,'text-anchor':'end','font-size':17,fill:'var(--muted)'},(o.yf||(x=>x))(v))});
+  if(o.base!=null)el(svg,'line',{x1:m.l,x2:W-m.r,y1:Y(o.base),y2:Y(o.base),stroke:'var(--axis)','stroke-width':1.5});
+  // x目盛り：月初（日次は5営業日ごと。点線の日付は必ず目盛りに出し、近くの定期目盛りは省く）
+  const evI=o.xmode==='day'?(o.ev||[]).map(e=>o.d.indexOf(e.d)).filter(i=>i>=0):[];
+  evI.forEach(i=>el(svg,'text',{x:X(i),y:H-8,'text-anchor':'middle','font-size':17,'font-weight':700,fill:'var(--ink)'},md(o.d[i])));
+  let last='';o.d.forEach((d,i)=>{const k=o.xmode==='day'?d:d.slice(0,7);if(k!==last){last=k;
+    if(o.xmode==='day'){if(i%(o.xstep||5)||evI.some(j=>Math.abs(j-i)<=2))return}else if(o.xskip&&(+d.slice(5,7))%o.xskip!==1%o.xskip&&i>0)return;
+    const lab=o.xmode==='day'?md(d):(o.xyear?d.slice(2,4)+'/'+(+d.slice(5,7)):(+d.slice(5,7))+'月');
+    if(o.xmode==='day'||!(i===0&&+d.slice(8,10)>20))el(svg,'text',{x:X(i),y:H-8,'text-anchor':'middle','font-size':17,fill:'var(--muted)'},lab)}});
+  (o.ev||[]).forEach(e=>{const i=o.d.indexOf(e.d);if(i<0)return;el(svg,'line',{x1:X(i),x2:X(i),y1:m.t,y2:H-m.b,stroke:'var(--ink2)','stroke-width':1.2,'stroke-dasharray':'3 4'});
+    el(svg,'text',{x:X(i)+(e.right?6:-6),y:m.t+16+(e.dy||0),'text-anchor':e.right?'start':'end','font-size':16.5,'font-weight':700,fill:'var(--ink2)'},e.t)});
+  o.series.forEach(s=>{let p='';s.v.forEach((v,i)=>{if(v!=null)p+=(p?'L':'M')+X(i).toFixed(1)+' '+Y(v).toFixed(1)});
+    el(svg,'path',{d:p,fill:'none',stroke:s.c,'stroke-width':s.w||2.4,'stroke-linejoin':'round','stroke-linecap':'round','stroke-dasharray':s.dash||''})});
+  // 終点ラベル（重なり回避）
+  const labs=o.series.filter(s=>!s.nolabel).map(s=>{let i=n-1;while(s.v[i]==null)i--;return{s,y:Y(s.v[i]),y0:Y(s.v[i]),v:s.v[i],x:X(i)}}).sort((a,b)=>a.y-b.y);
+  const gap=o.two?44:24;for(let k=1;k<labs.length;k++)if(labs[k].y-labs[k-1].y<gap)labs[k].y=labs[k-1].y+gap;
+  const over=labs.length?labs[labs.length-1].y-(H-m.b-4):0;if(over>0)labs.forEach(l=>l.y-=over);
+  labs.forEach(l=>{el(svg,'circle',{cx:l.x,cy:l.y0,r:4.5,fill:l.s.c,stroke:'var(--surface)','stroke-width':2});
+    if(o.two){el(svg,'text',{x:l.x+10,y:l.y-2,'font-size':17,'font-weight':l.s.hero?800:500,fill:'var(--ink)'},l.s.n);
+      el(svg,'text',{x:l.x+10,y:l.y+19,'font-size':17.5,'font-weight':700,fill:'var(--ink2)'},(o.vf||(x=>x))(l.v))}
+    else el(svg,'text',{x:l.x+10,y:l.y+5,'font-size':18,'font-weight':l.s.hero?800:600,fill:'var(--ink)'},(o.vf||(x=>x))(l.v))});
+  // ホバー
+  const cross=el(svg,'line',{y1:m.t,y2:H-m.b,stroke:'var(--ink2)','stroke-width':1,opacity:0});
+  const hit=el(svg,'rect',{x:m.l,y:m.t,width:W-m.l-m.r,height:H-m.t-m.b,fill:'transparent'});
+  hit.addEventListener('mousemove',ev=>{const r=svg.getBoundingClientRect(),sc=Math.min(r.width/W,r.height/H),ox=(r.width-W*sc)/2;
+    const x=(ev.clientX-r.left-ox)/sc;let i=Math.round((x-m.l)/(W-m.l-m.r)*(n-1));i=Math.max(0,Math.min(n-1,i));
+    cross.setAttribute('x1',X(i));cross.setAttribute('x2',X(i));cross.setAttribute('opacity',.5);
+    showTip(ev,`<b>${o.d[i].replace(/-/g,'/')}</b>`+o.series.filter(s=>s.v[i]!=null).map(s=>`<div><i style="background:${s.c}"></i>${s.n}　${(o.vf||(x=>x))(s.v[i])}</div>`).join(''))});
+  hit.addEventListener('mouseleave',()=>{cross.setAttribute('opacity',0);hideTip()});
+}
+
+/* ---------- 棒 ---------- */
+function bars(id,o){
+  const svg=$('#'+id);svg._draw=()=>bars(id,o);svg.removeAttribute('viewBox');svg.innerHTML='';const bb=svg.getBoundingClientRect();if(bb.width<10)return;
+  const W=1000,H=Math.round(1000*bb.height/bb.width),m={l:58,r:20,t:30,b:o.b||50};
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  const G=o.groups,ns=o.series.length,all=o.series.flatMap(s=>s.v);
+  let lo=Math.min(0,...all),hi=Math.max(0,...all);const pad=(hi-lo)*.12;lo-=lo<0?pad:0;hi+=hi>0?pad:0;if(o.min!=null)lo=o.min;if(o.max!=null)hi=o.max;
+  const Y=v=>m.t+(H-m.t-m.b)*(1-(v-lo)/(hi-lo)),gw=(W-m.l-m.r)/G.length,bw=Math.min(o.bw||70,gw*.8/ns-2);
+  ticks(lo,hi,5).forEach(v=>{el(svg,'line',{x1:m.l,x2:W-m.r,y1:Y(v),y2:Y(v),stroke:'var(--grid)'});el(svg,'text',{x:m.l-8,y:Y(v)+5,'text-anchor':'end','font-size':17,fill:'var(--muted)'},(o.yf||(x=>x))(v))});
+  (o.bands||[]).forEach(b=>el(svg,'line',{x1:m.l,x2:W-m.r,y1:Y(b),y2:Y(b),stroke:'var(--q)','stroke-width':1.2,'stroke-dasharray':'5 5'}));
+  G.forEach((g,gi)=>{const cx=m.l+gw*(gi+.5);
+    o.series.forEach((s,si)=>{const v=s.v[gi],x=cx-(ns*(bw+2)-2)/2+si*(bw+2),y0=Y(0),y1=Y(v),h=Math.abs(y1-y0),r=Math.min(4,h,bw/2);
+      const col=s.cs?s.cs[gi]:s.c,top=Math.min(y0,y1);
+      const d=v>=0?`M${x} ${y0}V${top+r}Q${x} ${top} ${x+r} ${top}H${x+bw-r}Q${x+bw} ${top} ${x+bw} ${top+r}V${y0}Z`
+                  :`M${x} ${y0}V${y1-r}Q${x} ${y1} ${x+r} ${y1}H${x+bw-r}Q${x+bw} ${y1} ${x+bw} ${y1-r}V${y0}Z`;
+      const b=el(svg,'path',{d,fill:col});
+      b.addEventListener('mousemove',ev=>showTip(ev,`<b>${o.tipG?o.tipG[gi]:g}</b><div><i style="background:${col}"></i>${s.n||''}　${(o.vf||(x=>x))(v)}</div>`));b.addEventListener('mouseleave',hideTip);
+      if(!o.nolab||(o.lab&&o.lab.includes(gi)))el(svg,'text',{x:x+bw/2,y:v>=0?top-7:y1+19,'text-anchor':'middle','font-size':o.lf||19,'font-weight':700,fill:'var(--ink)'},(o.vf||(x=>x))(v))});
+    if(g)el(svg,'text',{x:cx,y:H-m.b+(o.gy||22),'text-anchor':'middle','font-size':o.gf||17,'font-weight':600,fill:'var(--ink2)'},g)});
+  el(svg,'line',{x1:m.l,x2:W-m.r,y1:Y(0),y2:Y(0),stroke:'var(--axis)','stroke-width':1.5});
+}
+
+/* ---------- 各スライドのデータ ---------- */
+const EVN={'2026-10-29':'10/29 報道','2026-11-03':'11/3 投票','2026-11-05':'11/5 急落','2026-11-09':'11/9'};
+// 2 日付表
+(()=>{const ev={'2026-10-29':'米紙がエヌビディアCEOに関する疑惑を報道','2026-11-03':'中間選挙の投票日','2026-11-04':'民主党が上院・下院とも制す。株は上昇','2026-11-05':'AI規制への懸念で急落','2026-11-06':'米国は小幅反発。日本株が急落','2026-11-09':'エヌビディア取締役会の調査発表（11/8）後の初日'};
+  const hl={'2026-11-05':['SPX','IXIC','SOX','NVDA'],'2026-11-09':['NVDA'],'2026-11-04':['SPX']};
+  $('#tblDays tbody').innerHTML=Object.keys(ev).map(d=>`<tr><td class="d">${md(d)}</td><td>${ev[d]}</td>`+['SPX','IXIC','SOX','NVDA'].map(k=>`<td class="n${(hl[d]||[]).includes(k)?' hl':''}">${F.pct(V.days[d][k])}</td>`).join('')+'</tr>').join('');
+  $('#n225').textContent=F.pct(V.n225_1106)})();
+// 3
+(()=>{const o=V.oct,S=[{n:'S&P500',c:C.SPX,v:o.SPX},{n:'ナスダック',c:C.IXIC,v:o.IXIC},{n:'SOX（半導体）',c:C.SOX,v:o.SOX},{n:'エヌビディア',c:C.NVDA,v:o.NVDA,w:3.2,hero:1}];
+  legend('lgOct',S);line('chOct',{d:o.d,series:S,base:100,xmode:'day',xstep:5,two:1,r:175,vf:v=>F.pct(v-100),
+    ev:[{d:'2026-10-29',t:'10/29 報道'},{d:'2026-11-05',t:'11/5 急落',dy:22}]})})();
+// 4
+bars('chBar5',{groups:['均等加重S&P500','S&P500','ナスダック','SOX（半導体）','エヌビディア'],series:[{v:['RSP','SPX','IXIC','SOX','NVDA'].map(k=>V.octRet[k]),cs:[C.RSP,C.SPX,C.IXIC,C.SOX,C.NVDA]}],vf:F.pct,bw:110,lf:22});
+// 5
+(()=>{const o=V.ytd,S=[{n:'S&P500',c:C.SPX,v:o.SPX},{n:'SOX（半導体）',c:C.SOX,v:o.SOX},{n:'エヌビディア',c:C.NVDA,v:o.NVDA,w:3.2,hero:1}];
+  legend('lgYtd',S);line('chYtd',{d:o.d,series:S,base:100,two:1,r:175,vf:v=>F.pct(v-100)})})();
+// 6
+(()=>{const o=V.per,S=[{n:'AMD',c:'#cfc8ba',v:o.AMD,w:1.8},{n:'ブロードコム',c:'#aea798',v:o.AVGO,w:1.8},{n:'TSMC',c:'#8c8677',v:o.TSM,w:1.8},{n:'エヌビディア',c:C.NVDA,v:o.NVDA,w:3.4,hero:1}];
+  legend('lgPer',S);line('chPer',{d:o.d,series:S,min:0,max:65,xyear:1,xskip:4,two:1,r:165,vf:F.x,yf:v=>v+'倍'})})();
+// はしご（11/5の騰落率どうしの引き算。画面の数字で検算できるよう、表示値で計算する）
+(()=>{const d=V.days['2026-11-05'],f=v=>sg(v)+'%',r1=v=>+v.toFixed(1);
+  const r={mkt:d.SPX,tech:r1(d.IXIC-d.SPX),semi:r1(d.SOX-d.IXIC),own:r1(d.NVDA-d.SOX)};
+  const sub=(na,a,nb,b)=>`${f(a)} −（${f(b)}）`;
+  $('#c_mkt').innerHTML=`S&amp;P500は ${f(d.SPX)}`;
+  $('#c_tech').innerHTML=sub('ナスダック',d.IXIC,'S&amp;P500',d.SPX);$('#c_semi').innerHTML=sub('SOX',d.SOX,'ナスダック',d.IXIC);$('#c_own').innerHTML=sub('NVDA',d.NVDA,'SOX',d.SOX);
+  $('#l_nv').textContent=f(d.NVDA);for(const k in r)$('#l_'+k).textContent=sg(r[k]);
+  $('#rm_mkt').innerHTML=`ここまで除いた残り <b>${sg(r1(d.NVDA-d.SPX))}</b>`;$('#rm_tech').innerHTML=`ここまで除いた残り <b>${sg(r1(d.NVDA-d.IXIC))}</b>`;$('#rm_semi').innerHTML=`ここまで除いた残り <b>${sg(r1(d.NVDA-d.SOX))}</b>`;
+  $('#c_sum').innerHTML=`確かめ：4つを足すと ${['mkt','tech','semi','own'].map(k=>sg(r[k])).join(' ')} ＝ <b>${sg(r1(r.mkt+r.tech+r.semi+r.own))}</b>。エヌビディアの値動きに戻るので、漏れも重複もない分け方です。`})();
+// 9
+(()=>{const L=V.layers,S=[{n:'市場全体',c:C.SPX,v:L.mkt},{n:'テック分',c:C.IXIC,v:L.tech},{n:'半導体分',c:C.SOX,v:L.semi},{n:'エヌビディア固有分',c:C.NVDA,v:L.own,w:3.2,hero:1}];
+  legend('lgLay',S);line('chLay',{d:L.d,series:S,base:0,xmode:'day',xstep:5,two:1,r:215,vf:sg,
+    ev:[{d:'2026-10-29',t:'10/29 報道'},{d:'2026-11-05',t:'11/5',dy:22},{d:'2026-11-09',t:'11/9',right:1}]})})();
+// 11
+(()=>{const E=V.elect,i0=E.d.findIndex(d=>d>='2026-01-01'),iE=E.d.indexOf('2026-11-03')+1;const d=E.d.slice(i0,iE);
+  line('chProb',{d,series:[{n:'確率',c:C.prob,v:E.prob.slice(i0,iE),w:2.8,hero:1}],min:20,max:90,nt:4,yf:v=>v+'%',vf:v=>v.toFixed(0)+'%',r:80});
+  line('chSemi',{d,series:[{n:'半導体の強さ',c:C.SOX,v:E.semi.slice(i0,iE),w:2.8,hero:1}],base:0,nt:4,vf:sg,r:70})})();
+// 12
+(()=>{const a=V.nov4['2026-11-04'],b=V.nov4['2026-11-05'];const S=[{n:'払い手（大手4社）',c:C.IXIC,v:[a.pay,b.pay]},{n:'S&P500',c:C.SPX,v:[a.spx,b.spx]},{n:'受け手（SOX）',c:C.SOX,v:[a.sox,b.sox]}];
+  legend('lgNov4',S);bars('chNov4',{groups:['11/4（結果判明の翌日）','11/5（急落の日）'],series:S,vf:F.pct,bw:105,lf:21,gf:19})})();
+// 13 スライダー
+(()=>{const r=$('#cR'),mv=-4;const up=()=>{const p=r.value/100,tot=mv/(1-p),pre=tot*p;$('#cP').textContent='起きる確率 '+r.value+'%';
+  $('#cPre').style.flex=p;$('#cDay').style.flex=1-p;$('#cPre').innerHTML=`事前の分<br>${sg(pre)}%`;$('#cDay').innerHTML=`当日の下げ<br>${sg(mv)}%`;
+  $('#cTot').textContent='全体 '+sg(tot)+'%';$('#cN').innerHTML=`起きる確率が${r.value}%と見られていたなら、株価は事前に <b>${sg(pre)}%</b> 下げていたはずです。本当にそうだったかは、次のページの方法で確かめます。`;$('#cF').innerHTML=`−4% ÷ ${(1-p).toFixed(2)} ＝ <b>${sg(tot)}%</b>`};r.addEventListener('input',up);up()})();
+// 15
+(()=>{const L=V.layers;line('chOwn',{d:L.d,series:[{n:'エヌビディア固有分',c:C.NVDA,v:L.own,w:3.2,hero:1}],base:0,xmode:'day',xstep:5,vf:sg,r:70,
+  ev:[{d:'2026-10-29',t:'10/29 報道'},{d:'2026-11-09',t:'11/9 調査発表後',dy:22}]})})();
+// 16
+(()=>{const L=V.layers,z=L.z.own,i9=L.d.indexOf('2026-11-09');$('#z1109').textContent='ふだんの'+Math.abs(z[i9]).toFixed(1)+'倍の下げ';
+  bars('chZ',{groups:L.d.map((d,i)=>i%4==0||i==i9?md(d):''),tipG:L.d.map(md),series:[{n:'固有分',v:z,cs:z.map((v,i)=>i==i9?C.NVDA:'#cfc8ba')}],vf:v=>sg(v)+'倍',nolab:1,lab:[i9],bw:22,min:-5.5,max:3,bands:[2,-2],gf:16,lf:21})})();
+// 17
+(()=>{const o=V.per;line('chRel',{d:o.d,series:[{n:'エヌビディア÷競合',c:C.NVDA,v:o.rel,w:3,hero:1}],base:1,min:.4,max:1.7,xyear:1,xskip:4,vf:v=>v.toFixed(2),yf:v=>v.toFixed(1),r:70,
+  ev:[{d:o.d.find(d=>d>='2026-10-29'),t:'10/29 報道'}]})})();
+// 18
+(()=>{const cm=['評価が切り下がった年。利益予想は倍増、株価は35%高どまり','同じ流れが続く','差はやや縮む','<b>予想は変わらず、株価だけ下落</b>'];
+  $('#tblDec tbody').innerHTML=V.per.dec.map((r,i)=>`<tr><td class="d">${r.lab}</td><td class="n">${r.p0.toFixed(1)} → <b>${r.p1.toFixed(1)}倍</b></td><td class="n${i==3?' hl':''}">${F.pct(r.px)}</td><td class="n${i<3?' hl':''}">${F.pct(r.eps)}</td><td>${cm[i]}</td></tr>`).join('')})();
+
+/* ---------- 投票・封印予測 ---------- */
+const store={get(k){try{return JSON.parse(localStorage.getItem('nov5deck')||'{}')[k]}catch(e){return this.m[k]}},set(k,v){this.m[k]=v;try{const o=JSON.parse(localStorage.getItem('nov5deck')||'{}');o[k]=v;localStorage.setItem('nov5deck',JSON.stringify(o))}catch(e){}},m:{}};
+function syncMy(){$$('[data-my]').forEach(td=>{const v=store.get(td.dataset.my)??store.m[td.dataset.my];td.innerHTML=v?`<b class="${v==='当たり'?'hit':'miss'}">${v}</b>`:'—'})}
+$$('.vote,.pick').forEach(g=>{const k=g.dataset.h,bs=[...g.children];const paint=()=>{const v=store.get(k)??store.m[k];bs.forEach(b=>b.classList.toggle('sel',b.textContent===v))};
+  bs.forEach(b=>b.addEventListener('click',()=>{const cur=store.get(k)??store.m[k];store.set(k,cur===b.textContent?null:b.textContent);paint();syncMy()}));paint()});syncMy();
+
+/* ---------- ナビ・帯・開示 ---------- */
+const slides=$$('.slide');let cur=0;
+const HS={A:'民主党の勝利は、前もって半導体株に織り込まれていた',B:'半導体株の急落は、「上院も取った」想定外の分だ',C:'CEOの件は、前から織り込まれていた'};
+const RB=[['1029','10/29','報道'],['1103','11/3','投票'],['1105','11/5','急落'],['1109','11/9','調査後']];
+slides.forEach((s,i)=>{if(s.classList.contains('cover'))return;const days=(s.dataset.days||'').split(',');const b=s.dataset.badge;
+  const t=document.createElement('div');t.className='top';
+  const hp=s.dataset.hyp,rest=hp?`<span class="hy">${['A','B','C'].map(h=>`<i class="${h===hp?'on':h<hp?'done':''}">${h}</i>`).join('')}</span><span class="hs">仮説${hp}　${HS[hp]}</span>`:(b?s.dataset.chap:s.dataset.chap.split(' ').slice(1).join(' '));
+  t.innerHTML=`<div class="chap"><b class="${b||''}">${b==='q'?'問い':b==='a'?'開示':s.dataset.chap.split(' ')[0]}</b>${rest}</div><div class="ribbon">`+RB.map(r=>`<span class="${days.includes(r[0])?'on':''}"><b>${r[1]}</b>${r[2]}</span>`).join('')+'</div>';
+  s.prepend(t)});
+function show(i){cur=Math.max(0,Math.min(slides.length-1,i));slides.forEach((s,k)=>s.classList.toggle('on',k===cur));$('#pg').textContent=(cur+1)+' / '+slides.length;upd();slides[cur].querySelectorAll('svg').forEach(v=>v._draw&&v._draw());hideTip();try{history.replaceState(null,'','#'+(cur+1))}catch(e){}}
+function upd(){const s=slides[cur];$('#rvb').hidden=!(s.querySelector('.hid')&&!s.classList.contains('open'))}
+function fwd(){const s=slides[cur];if(s.querySelector('.hid')&&!s.classList.contains('open')){s.classList.add('open');upd()}else show(cur+1)}
+$('#next').onclick=fwd;$('#prev').onclick=()=>show(cur-1);$('#rvb').onclick=fwd;
+addEventListener('keydown',e=>{if(e.target.tagName==='INPUT')return;if(['ArrowRight',' ','PageDown','Enter'].includes(e.key)){e.preventDefault();fwd()}if(['ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();show(cur-1)}});
+addEventListener('resize',()=>slides[cur].querySelectorAll('svg').forEach(v=>v._draw&&v._draw()));
+let tx=null,ty=0;
+addEventListener('touchstart',e=>{if(e.touches.length>1||e.target.closest('input,button')){tx=null;return}tx=e.touches[0].clientX;ty=e.touches[0].clientY},{passive:true});
+addEventListener('touchend',e=>{if(tx==null)return;const dx=e.changedTouches[0].clientX-tx,dy=e.changedTouches[0].clientY-ty;tx=null;if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.5){dx<0?fwd():show(cur-1)}},{passive:true});
+show((+location.hash.slice(1)||1)-1);
+</script>
+</body>
+</html>
