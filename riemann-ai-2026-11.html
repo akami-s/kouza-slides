@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Serif+JP:wght@600;700&display=swap">
 <style>
 * { margin: 0 }
-html { background: #E3DDCF }
+html { background: #E3DDCF; height: 100% }
 :root { --z: 0.5 }
 body { font-family: 'Noto Sans JP', Arial, sans-serif; color: #17212F; }
 
@@ -130,28 +130,29 @@ h3 { font-family: 'Noto Serif JP', Georgia, serif; font-size: 34px; font-weight:
 
 .stat-h .num { flex-shrink: 0; white-space: nowrap; }
 
-/* page shell */
-body { font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', Meiryo, sans-serif; padding: 16px 8px 48px }
+/* page shell: one slide at a time */
+body { font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', Meiryo, sans-serif; height: 100%; overflow: hidden; -webkit-user-select: none; user-select: none }
 h1, h2, h3, .num, .fig, .stepn, .say-me, .say-big { font-family: 'Noto Serif JP', 'Hiragino Mincho ProN', 'Yu Mincho', serif }
-.pg-head { max-width: 1280px; margin: 0 auto 16px; font-size: 15px; line-height: 1.6; color: #3C4654 }
-.pg-head a { color: #1A6480 }
-.pg-title { font-size: 18px; font-weight: 700; color: #17212F }
-.pg-rot { display: none; font-weight: 700; color: #1A6480 }
-@media (orientation: portrait) and (max-width: 720px) { .pg-rot { display: block } }
-.sw { width: calc(1920px * var(--z)); margin: 0 auto 16px; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 6px rgba(23,33,47,.18) }
+.stage { padding-top: 8px }
+.sw { display: none; width: calc(1920px * var(--z)); margin: 0 auto; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 6px rgba(23,33,47,.18); cursor: pointer }
+.sw.on { display: block }
 .sw > section { width: 1920px; height: 1080px; box-sizing: border-box; position: relative; overflow: hidden; zoom: var(--z) }
 table { width: 100%; border-collapse: separate; border-spacing: 0; border: solid #0003; border-width: 2px 0 0 2px }
 th, td { padding: .35em .6em; text-align: left; border: solid #0003; border-width: 0 2px 2px 0 }
-.pg-foot { max-width: 1280px; margin: 24px auto 0; font-size: 13px; line-height: 1.6; color: #5A6472 }
+.nav { position: fixed; left: 0; right: 0; bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 14px; font-size: 14px; line-height: 1.4; color: #5A6472 }
+.nav button { font: inherit; padding: 6px 16px; border-radius: 18px; border: 1px solid #CFC8B8; background: #F7F4EE; color: #3C4654; cursor: pointer }
+.nav button:disabled { opacity: .4; cursor: default }
+.nav a { color: #1A6480 }
+.rot { display: none }
+@media (orientation: portrait) and (max-width: 720px) {
+  .stage { padding-top: 22vh }
+  .rot { display: block; position: fixed; left: 0; right: 0; top: 6vh; text-align: center; font-size: 15px; font-weight: 700; color: #1A6480; padding: 0 16px }
+}
 </style>
 </head>
 <body>
-<div class="pg-head">
-<p class="pg-title">リーマン予想から考える「AIが人間を超える」とは</p>
-<p>Akami Studio 投資講座の資料です。スライドは上から順に、縦に並んでいます。<a href="./">資料の一覧へ</a></p>
-<p class="pg-rot">スマホは、横向きにすると読みやすくなります。</p>
-</div>
-<main>
+<p class="rot">スマホは、横向きにすると読みやすくなります</p>
+<main class="stage" id="stage">
 <div class="sw"><section id="cover" class="cover" data-transition="fade">
 <p class="eyebrow">Akami Studio　投資講座</p>
 <h1>リーマン予想から考える<br>「AIが人間を超える」とは</h1>
@@ -525,13 +526,53 @@ th, td { padding: .35em .6em; text-align: left; border: solid #0003; border-widt
 <p class="foot">出典：Lean・Mathlib共同声明、MITサザーランド氏の検証記録、GIGAZINE、ITmedia、The Next Web。11月24日確認</p>
 </section></div>
 </main>
-<p class="pg-foot">事実の部分は2026年11月24日時点の情報です。状況は今後変わる可能性があります。この資料は、投資判断の根拠となるものではありません。</p>
+<div class="nav">
+<button id="prev" type="button">← 戻る</button>
+<span id="pg">1 / 21</span>
+<button id="next" type="button">進む →</button>
+<a href="./">資料の一覧</a>
+</div>
 <script>
+var slides = Array.prototype.slice.call(document.querySelectorAll('.sw'));
+var cur = 0;
 function fit() {
-  var w = Math.min(document.documentElement.clientWidth - 16, 1280);
-  document.documentElement.style.setProperty('--z', (w / 1920).toFixed(4));
+  var w = document.documentElement.clientWidth * 0.97;
+  var h = window.innerHeight - 64;
+  var z = Math.min(w / 1920, h / 1080);
+  document.documentElement.style.setProperty('--z', z.toFixed(4));
 }
-fit(); addEventListener('resize', fit);
+function show(i) {
+  cur = Math.max(0, Math.min(slides.length - 1, i));
+  slides.forEach(function (s, k) { s.classList.toggle('on', k === cur); });
+  document.getElementById('pg').textContent = (cur + 1) + ' / ' + slides.length;
+  document.getElementById('prev').disabled = cur === 0;
+  document.getElementById('next').disabled = cur === slides.length - 1;
+  try { history.replaceState(null, '', '#' + (cur + 1)); } catch (e) {}
+}
+document.getElementById('next').onclick = function () { show(cur + 1); };
+document.getElementById('prev').onclick = function () { show(cur - 1); };
+document.getElementById('stage').addEventListener('click', function (e) {
+  if (e.target.closest('a')) return;
+  var sw = e.target.closest('.sw');
+  if (!sw) return;
+  var r = sw.getBoundingClientRect();
+  if (e.clientX < r.left + r.width * 0.25) show(cur - 1); else show(cur + 1);
+});
+addEventListener('keydown', function (e) {
+  if (['ArrowRight', ' ', 'PageDown', 'Enter'].indexOf(e.key) >= 0) { e.preventDefault(); show(cur + 1); }
+  if (['ArrowLeft', 'PageUp'].indexOf(e.key) >= 0) { e.preventDefault(); show(cur - 1); }
+});
+var tx = null, ty = 0, swiped = false;
+addEventListener('touchstart', function (e) { if (e.touches.length > 1) { tx = null; return; } tx = e.touches[0].clientX; ty = e.touches[0].clientY; }, { passive: true });
+addEventListener('touchend', function (e) {
+  if (tx == null) return;
+  var dx = e.changedTouches[0].clientX - tx, dy = e.changedTouches[0].clientY - ty; tx = null;
+  if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) { swiped = true; if (dx < 0) show(cur + 1); else show(cur - 1); setTimeout(function () { swiped = false; }, 400); }
+}, { passive: true });
+document.getElementById('stage').addEventListener('click', function (e) { if (swiped) e.stopImmediatePropagation(); }, true);
+addEventListener('resize', fit);
+fit();
+show((+location.hash.slice(1) || 1) - 1);
 </script>
 </body>
 </html>
